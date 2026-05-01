@@ -18,6 +18,8 @@
     --green-dim:   rgba(76,175,130,.15);
     --blue:        #4c8ecf;
     --blue-dim:    rgba(76,142,207,.15);
+    --purple-dim:  rgba(170, 76, 207, 0.15);
+    --purple:      #b94ccf;
 
     --sidebar-w:   260px;
     --sidebar-collapsed: 68px;
@@ -725,6 +727,8 @@ html, body {
     font-weight: 600;
 }
 
+.status-badge.new      { background: var(--gold-dim);  color: var(--gold);  }
+.status-badge.transferred { background: var(--purple-dim); color: var(--purple); }
 .status-badge.active   { background: var(--green-dim); color: var(--green); }
 .status-badge.released { background: var(--blue-dim);  color: var(--blue);  }
 .status-badge.incident { background: var(--red-dim);   color: var(--red);   }

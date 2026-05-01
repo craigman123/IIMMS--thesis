@@ -46,15 +46,6 @@
 
 {{-- Inject inmates data from Laravel --}}
 <script>
-    const inmates = @json($inmates->map(function($i) {
-        return [
-            'id'       => $i->id,
-            'name'     => $i->name,
-            'cell'     => $i->cell ?? '—',
-            'status'   => $i->status ?? 'unknown',
-            'admitted' => optional($i->admitted_at)->format('M d, Y') ?? '—',
-            'release'  => optional($i->release_date)->format('M d, Y') ?? '—',
-        ];
-    }));
+    const inmates = @json($inmates_json);
 </script>
 <script src="{{ asset('js/admin/pages/inmates.js') }}"></script>

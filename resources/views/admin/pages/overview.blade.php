@@ -117,3 +117,9 @@
         </div>
     </div>
 </div>
+
+<script>
+    const inmateCount   = {{ count($inmates_json) }};
+    const active_inmates = {{ $active_inmates }};
+</script>
+

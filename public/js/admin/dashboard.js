@@ -107,8 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── MOCK STATS ───────────────────────────────────────────────────
     function loadStats() {
         const stats = {
-            total:     142,
-            active:    138,
+            total:     inmateCount,
+            active:    active_inmates,
             incidents: 3,
             cells:     47,
             capacity:  200,
