@@ -15,11 +15,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $email = 'adminw@system.com';
+        $badge = '12345';
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $exists = User::where('email', $email)
+            ->orWhere('badge_number', $badge)
+            ->exists();
+
+        if (!$exists) {
+            User::create([
+                'name' => 'Admin',
+                'email' => $email,
+                'badge_number' => $badge,
+                'role' => 'admin',
+                'system_access' => 'active',
+                'password' => Hash::make('12345'),
+            ]);
+        }
     }
 }

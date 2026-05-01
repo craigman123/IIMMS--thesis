@@ -1,0 +1,432 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --navy:       #0f1f3d;
+    --navy-mid:   #1a3260;
+    --navy-light: #2a4a8a;
+    --gold:       #c9a84c;
+    --gold-light: #e8c97a;
+    --text-dark:  #1a1a2e;
+    --text-muted: #6b7280;
+    --error-bg:   #fff0f0;
+    --error-text: #c0392b;
+    --shadow-card: 0 24px 64px rgba(15, 31, 61, 0.18), 0 4px 16px rgba(15, 31, 61, 0.1);
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+    background-color: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    position: relative;
+    overflow: auto;
+}
+
+body::-webkit-scrollbar { width: 8px; }
+body::-webkit-scrollbar-track { background: transparent; }
+body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+body::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+body::before, body::after {
+    content: '';
+    position: fixed;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 168, 76, 0.08);
+    pointer-events: none;
+}
+body::before { width: 600px; height: 600px; top: -150px; right: -150px; }
+body::after  { width: 400px; height: 400px; bottom: -100px; left: -100px; border-color: rgba(201, 168, 76, 0.05); }
+
+.bg-pattern {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(circle, rgba(201, 168, 76, 0.07) 1px, transparent 1px);
+    background-size: 32px 32px;
+}
+
+/* Card */
+.card {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-accent {
+    height: 4px;
+    background: linear-gradient(90deg, var(--navy-mid), var(--gold), var(--navy-mid));
+}
+
+/* Tab switcher */
+.tab-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.tab-btn {
+    padding: 1rem 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease;
+    letter-spacing: 0.01em;
+}
+
+.tab-btn.active {
+    color: var(--navy);
+    border-bottom-color: var(--gold);
+}
+
+.tab-btn:not(.active):hover { color: var(--navy-light); }
+
+.card-body { padding: 2rem 2.25rem 1.75rem; }
+
+/* Panel show/hide */
+.panel { display: none; }
+.panel.active {
+    display: block;
+    animation: panelIn 0.25s ease both;
+}
+
+@keyframes panelIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Header */
+.panel-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid rgba(201, 168, 76, 0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 0.75rem;
+}
+
+.panel-header h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--text-dark);
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.panel-header p {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+}
+
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+}
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e7eb;
+}
+.divider span {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Error */
+.error-box {
+    background: var(--error-bg);
+    border: 1px solid rgba(192, 57, 43, 0.2);
+    border-left: 3px solid var(--error-text);
+    color: var(--error-text);
+    font-size: 0.8125rem;
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.1rem;
+}
+
+/* Two-column row */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.form-group { margin-bottom: 0.3rem; }
+
+label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+.input-wrapper { position: relative; }
+
+.input-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+    height: 15px;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 0.6rem 0.85rem 0.6rem 2.5rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    color: var(--text-dark);
+    background: #ffffff;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 9px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: var(--navy-light);
+    box-shadow: 0 0 0 3px rgba(42, 74, 138, 0.09);
+}
+
+input::placeholder { color: #d1d5db; }
+
+/* Password strength */
+.strength-bar { display: flex; gap: 4px; margin-top: 6px; }
+.strength-seg {
+    flex: 1;
+    height: 3px;
+    border-radius: 99px;
+    background: #e5e7eb;
+    transition: background 0.25s ease;
+}
+.strength-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* Remember / agree row */
+.remember-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+}
+
+input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--navy-light);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.remember-row label {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    cursor: pointer;
+}
+
+/* Submit */
+.btn-submit {
+    width: 100%;
+    padding: 0.72rem 1rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #fff;
+    background: var(--navy);
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    margin-top: 0.25rem;
+}
+
+.btn-submit::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.12) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.btn-submit:hover { background: var(--navy-mid); box-shadow: 0 6px 20px rgba(15, 31, 61, 0.3); }
+.btn-submit:hover::after { opacity: 1; }
+.btn-submit:active { transform: scale(0.985); }
+
+/* Switch prompt */
+.switch-prompt {
+    text-align: center;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    margin-top: 1.25rem;
+}
+
+.switch-prompt a {
+    color: var(--navy-light);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+}
+.switch-prompt a:hover { text-decoration: underline; }
+
+/* Footer */
+.card-footer {
+    text-align: center;
+    padding: 0.9rem 2.25rem 1.25rem;
+    border-top: 1px solid #f3f4f6;
+}
+.card-footer p { font-size: 0.75rem; color: #d1d5db; }
+.card-footer span { color: var(--gold); }
+
+/* ─────────────────────────────────────────────────────────────────
+   ADD THESE RULES TO YOUR EXISTING  css/login/login.css
+   ───────────────────────────────────────────────────────────────── */
+
+/* ── Authority Badge ── */
+.authority-badge-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 28px 0 12px;
+    background: linear-gradient(180deg, #0d1f35 0%, #1a3557 100%);
+    border-radius: 12px 12px 0 0;
+}
+
+.authority-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.badge-seal {
+    width: 110px;
+    height: 110px;
+    filter: drop-shadow(0 4px 16px rgba(201,168,76,0.35));
+    animation: sealPulse 3.5s ease-in-out infinite;
+}
+
+@keyframes sealPulse {
+    0%, 100% { filter: drop-shadow(0 4px 16px rgba(201,168,76,0.35)); }
+    50%       { filter: drop-shadow(0 4px 26px rgba(201,168,76,0.65)); }
+}
+
+.badge-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.badge-label-top {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: #c9a84c;
+    text-transform: uppercase;
+}
+
+.badge-label-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+}
+
+/* ── Email validation status icon (inside input-wrapper) ── */
+.input-wrapper {
+    position: relative; /* ensure this is set in your base CSS */
+}
+
+.email-status-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+    transition: opacity 0.2s;
+}
+
+/* Spinning animation for the "checking" clock icon */
+.email-status-icon svg {
+    animation: none;
+}
+.email-status-icon.spin svg {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Email hint text below the field ── */
+.email-hint {
+    font-size: 11.5px;
+    margin-top: 4px;
+    min-height: 16px;
+    padding-left: 2px;
+    transition: color 0.2s;
+}
+.email-hint.hint-checking { color: #c9a84c; }
+.email-hint.hint-valid    { color: #22863a; }
+.email-hint.hint-invalid  { color: #e24b4a; }
+
+/* ── Card footer warning update ── */
+.card-footer p {
+    font-size: 10.5px;
+    color: var(--text-muted, #8a99b0);
+    text-align: center;
+}

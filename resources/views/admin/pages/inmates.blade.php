@@ -1,0 +1,60 @@
+{{-- resources/views/admin/pages/inmates.blade.php --}}
+
+<link rel="stylesheet" href="{{ asset('css/admin/pages/inmates.css') }}">
+<div class="page" id="page-inmates">
+    <div class="page-header">
+        <h1>Inmate <span class="gold">Registry</span></h1>
+        <p>Manage and monitor all inmates in the facility.</p>
+    </div>
+    <div class="panel-card">
+        <div class="panel-card-header">
+            <div class="table-controls">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" placeholder="Search inmates..." id="inmateSearch">
+                </div>
+
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table" id="inmateTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Cell</th>
+                        <th>Status</th>
+                        <th>Admission Date</th>
+                        <th>Release Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inmateTableBody">
+                    <tr class="skeleton-row"><td colspan="7"><div class="skeleton"></div></td></tr>
+                    <tr class="skeleton-row"><td colspan="7"><div class="skeleton"></div></td></tr>
+                    <tr class="skeleton-row"><td colspan="7"><div class="skeleton"></div></td></tr>
+                    <tr class="skeleton-row"><td colspan="7"><div class="skeleton"></div></td></tr>
+                    <tr class="skeleton-row"><td colspan="7"><div class="skeleton"></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{-- Inject inmates data from Laravel --}}
+<script>
+    const inmates = @json($inmates->map(function($i) {
+        return [
+            'id'       => $i->id,
+            'name'     => $i->name,
+            'cell'     => $i->cell ?? '—',
+            'status'   => $i->status ?? 'unknown',
+            'admitted' => optional($i->admitted_at)->format('M d, Y') ?? '—',
+            'release'  => optional($i->release_date)->format('M d, Y') ?? '—',
+        ];
+    }));
+</script>
+<script src="{{ asset('js/admin/pages/inmates.js') }}"></script>

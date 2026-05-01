@@ -1,0 +1,658 @@
+/* public/css/admin/pages/add-inmate.css */
+
+/* ── BACK ROW ────────────────────────────────────────────────────── */
+.ai-back-row {
+    margin-bottom: 6px;
+}
+
+.ai-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 12.5px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color var(--transition);
+}
+
+.ai-back-btn:hover { color: var(--gold); }
+.ai-back-btn svg   { stroke: currentColor; }
+
+/* ── STEP INDICATOR ──────────────────────────────────────────────── */
+.ai-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 28px;
+    padding: 20px 24px;
+    background: var(--navy-mid);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+}
+
+.ai-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.ai-step-bubble {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 2px solid var(--navy-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all var(--transition);
+    flex-shrink: 0;
+}
+
+.ai-step-bubble svg { stroke: currentColor; }
+
+.ai-step.active .ai-step-bubble { background: var(--gold-dim);  border-color: var(--gold);  color: var(--gold);  }
+.ai-step.done   .ai-step-bubble { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+.ai-step-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.ai-step-num {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition: color var(--transition);
+}
+
+.ai-step-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white-dim);
+    white-space: nowrap;
+    transition: color var(--transition);
+}
+
+.ai-step.active .ai-step-num  { color: var(--gold);  }
+.ai-step.active .ai-step-name { color: var(--white);  }
+.ai-step.done   .ai-step-num  { color: var(--green);  }
+.ai-step.done   .ai-step-name { color: var(--green);  }
+
+.ai-step-connector {
+    flex: 1;
+    height: 2px;
+    background: var(--navy-border);
+    margin: 0 16px;
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+    min-width: 32px;
+}
+
+.ai-step-connector.done::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--green);
+    border-radius: 2px;
+}
+
+/* ── SECTION VISIBILITY ──────────────────────────────────────────── */
+.ai-section { display: none; }
+
+.ai-section.active {
+    display: block;
+    animation: aiFadeIn .2s ease forwards;
+}
+
+@keyframes aiFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── CARD ────────────────────────────────────────────────────────── */
+.ai-card { margin-bottom: 0; }
+
+.ai-card-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--navy-border);
+}
+
+.ai-card-header h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 2px;
+}
+
+.ai-card-sub {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ai-card-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.ai-card-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+}
+
+.ai-card-icon.gold { background: var(--gold-dim); color: var(--gold); }
+.ai-card-icon.blue { background: var(--blue-dim); color: var(--blue); }
+.ai-card-icon.red  { background: var(--red-dim);  color: var(--red);  }
+
+.ai-card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── FIELD GROUP LABEL ───────────────────────────────────────────── */
+.ai-field-group-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--navy-border);
+}
+
+/* ── FORM LAYOUT ─────────────────────────────────────────────────── */
+.ai-form-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    align-items: start;
+}
+
+.ai-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.ai-form-group--full { grid-column: 1 / -1; }
+
+.ai-form-group label {
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.req {
+    color: var(--red);
+    font-size: 11px;
+}
+
+.ai-form-group input,
+.ai-form-group select,
+.ai-form-group textarea {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--white);
+    font-size: 13.5px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.ai-form-group input::placeholder,
+.ai-form-group textarea::placeholder {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.ai-form-group input[readonly] {
+    color: var(--muted);
+    cursor: default;
+}
+
+.ai-form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+}
+
+.ai-form-group input:focus,
+.ai-form-group select:focus,
+.ai-form-group textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-dim);
+}
+
+.ai-form-group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(60%) sepia(20%) saturate(400%) hue-rotate(10deg);
+    cursor: pointer;
+    opacity: .65;
+}
+
+.ai-form-group input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+/* ── SELECT WRAPPER ──────────────────────────────────────────────── */
+.ai-select-wrapper { position: relative; }
+
+.ai-select-wrapper select {
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+.ai-select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4.5px solid transparent;
+    border-right: 4.5px solid transparent;
+    border-top: 5px solid var(--muted);
+    pointer-events: none;
+    transition: border-top-color var(--transition);
+}
+
+.ai-select-wrapper:focus-within::after { border-top-color: var(--gold); }
+
+/* ── DIVIDER ─────────────────────────────────────────────────────── */
+.ai-form-divider {
+    height: 1px;
+    background: var(--navy-border);
+}
+
+/* ── VICTIMS TABLE (form input rows) ─────────────────────────────── */
+.ai-victim-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    grid-template-areas: 
+    "input-name input-age input-testifiers input-relation"
+    "btn-remove btn-remove btn-remove btn-remove"
+    ;
+    gap: 10px;
+    align-items: end;
+    padding: 10px 14px;
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    animation: aiFadeIn .18s ease;
+}
+
+.vf-name { grid-area: input-name; }
+.vf-age { grid-area: input-age; }
+.vf-testifiers { grid-area: input-testifiers; }
+.vf-relation { grid-area: input-relation; }
+.ai-victim-remove { grid-area: btn-remove; }
+
+.ai-victim-row input,
+.ai-victim-row select {
+    background: var(--navy-mid);
+    border: 1px solid var(--navy-border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--white);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    width: 100%;
+    transition: border-color var(--transition);
+}
+
+.ai-victim-row input:focus       { border-color: var(--gold); }
+.ai-victim-row input::placeholder { color: var(--muted); }
+
+.ai-victim-remove {
+    background: none;
+    border: 1px solid var(--navy-border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    flex-shrink: 0;
+}
+
+.ai-victim-remove:hover {
+    border-color: var(--red);
+    color: var(--red);
+    background: var(--red-dim);
+}
+
+.ai-victim-remove svg { stroke: currentColor; }
+
+.ai-add-row-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px dashed var(--navy-border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all var(--transition);
+    margin-left: auto;
+}
+
+.ai-add-row-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.ai-empty-note {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+    padding: 12px 0 4px;
+}
+
+/* ── NAV ROW ─────────────────────────────────────────────────────── */
+.ai-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 4px;
+}
+
+.ai-btn-ghost {
+    background: none;
+    border: 1px solid var(--navy-border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: border-color var(--transition), color var(--transition), background var(--transition);
+}
+
+.ai-btn-ghost:hover {
+    border-color: var(--white-dim);
+    color: var(--white);
+    background: var(--gold-glow);
+}
+
+.ai-btn-submit {
+    min-width: 200px;
+    justify-content: center;
+}
+
+/* ── CRIME ENTRY FORM PANEL ──────────────────────────────────────── */
+.ai-crime-form-panel {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    animation: aiFadeIn .2s ease forwards;
+    overflow: hidden;
+}
+
+.ai-crime-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--navy-border);
+}
+
+.ai-crime-form-header h4 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0;
+}
+
+.ai-crime-form-inner {
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.ai-crime-form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+/* ── SAVED CRIME CARDS ───────────────────────────────────────────── */
+.ai-crime-card {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    animation: aiFadeIn .18s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ai-crime-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ai-crime-card-badge {
+    background: var(--red-dim);
+    color: var(--red);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-radius: 6px;
+    padding: 3px 8px;
+    flex-shrink: 0;
+}
+
+.ai-crime-card-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.ai-crime-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.ai-crime-card-meta strong {
+    color: var(--white-dim);
+    font-weight: 600;
+}
+
+.ai-crime-card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    border-top: 1px solid var(--navy-border);
+    padding-top: 8px;
+    line-height: 1.5;
+}
+
+/* ── CRIME CARD EDIT BUTTON ──────────────────────────────────────── */
+.ai-crime-edit {
+    background: none;
+    border: 1px solid var(--navy-border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.ai-crime-edit:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: var(--gold-dim);
+}
+
+.ai-crime-edit svg { stroke: currentColor; }
+
+/* ── CRIME CARD — VICTIMS SECTION ────────────────────────────────── */
+.ai-crime-card-victims {
+    border-top: 1px solid var(--navy-border);
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ai-crime-victims-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ai-crime-victims-label svg {
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.ai-crime-victim-count {
+    background: var(--navy-border);
+    color: var(--white-dim);
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 1px 7px;
+    margin-left: 2px;
+}
+
+.ai-crime-victims-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ai-crime-victim-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: var(--navy-mid);
+    border: 1px solid var(--navy-border);
+    border-radius: 6px;
+    font-size: 12.5px;
+}
+
+.ai-crime-victim-name {
+    font-weight: 600;
+    color: var(--white-dim);
+    flex: 1;
+}
+
+.ai-crime-victim-detail {
+    font-size: 11.5px;
+    color: var(--muted);
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 4px;
+    padding: 1px 7px;
+}
+
+.ai-crime-victim-none {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 4px 0 2px;
+    margin: 0;
+}
+
+/* ── VALIDATION ERRORS ───────────────────────────────────────────── */
+.ai-form-group input.ai-input-error,
+.ai-form-group select.ai-input-error,
+.ai-form-group textarea.ai-input-error {
+    border-color: var(--red) !important;
+    box-shadow: 0 0 0 3px var(--red-dim) !important;
+}
+
+.ai-field-error {
+    display: block;
+    font-size: 11px;
+    color: var(--red);
+    margin-top: 4px;
+    font-weight: 500;
+    letter-spacing: .3px;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .ai-form-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+    .ai-steps     { padding: 14px 16px; }
+    .ai-step-name { display: none; }
+    .ai-form-row  { grid-template-columns: 1fr; }
+    .ai-card-body { padding: 16px; }
+
+    .ai-victim-row { grid-template-columns: 1fr 1fr; }
+    .ai-victim-row input:last-of-type { grid-column: 1 / -1; }
+}
