@@ -8,9 +8,11 @@ function initAddInmatePage() {
     const connectors = document.querySelectorAll('.ai-step-connector');
     const sections   = document.querySelectorAll('.ai-section');
 
-    // Required field IDs per step
+    // Required field IDs per step.
+    // NOTE: 'ai-cell' is a hidden input — it is validated separately in validateStep()
+    // via a custom branch so the error appears on the visible search input instead.
     const STEP_REQUIRED = {
-        1: ['ai-lastName', 'ai-firstName', 'ai-cell', 'ai-status', 'ai-detentionType', 'ai-admissionDate', 'ai-commitOrder'],
+        1: ['ai-lastName', 'ai-firstName', 'ai-status', 'ai-detentionType', 'ai-admissionDate', 'ai-commitOrder'],
         2: ['ai-dob', 'ai-sex', 'ai-homeAddress'],
         // Step 3 has no classic required inputs — it requires at least 1 saved crime (checked separately)
     };
@@ -18,7 +20,6 @@ function initAddInmatePage() {
     const FIELD_LABELS = {
         'ai-lastName':      'Last Name',
         'ai-firstName':     'First Name',
-        'ai-cell':          'Assigned Cell',
         'ai-status':        'Status',
         'ai-detentionType': 'Detention Type',
         'ai-admissionDate': 'Admission Date',
@@ -34,58 +35,302 @@ function initAddInmatePage() {
         section?.querySelectorAll('.ai-input-error').forEach(el => el.classList.remove('ai-input-error'));
     }
 
+    // ── MUGSHOT PREVIEWER ────────────────────────────────────────────
+    const mugshotInput       = document.getElementById('ai-mugshot');
+    const mugshotImg         = document.getElementById('ai-mugshot-img');
+    const mugshotPlaceholder = document.getElementById('ai-mugshot-placeholder');
+    const mugshotFilename    = document.getElementById('ai-mugshot-filename');
+    const mugshotClear       = document.getElementById('ai-mugshot-clear');
+
+    document.querySelector('.ai-mugshot-label')?.addEventListener('click', () => {
+        mugshotInput?.click();
+    });
+
+    mugshotInput?.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Mugshot file is too large. Please choose an image under 5 MB.');
+            AiClearMugshot();
+            return;
+        }
+
+        const preview = document.getElementById('ai-mugshot-preview');
+        const reader  = new FileReader();
+        reader.onload = (e) => {
+            mugshotImg.src = e.target.result;
+            mugshotImg.style.display = 'block';
+            if (mugshotPlaceholder) mugshotPlaceholder.style.display = 'none';
+            if (preview) preview.classList.add('has-photo');
+        };
+        reader.readAsDataURL(file);
+
+        if (mugshotFilename) mugshotFilename.textContent = file.name;
+        if (mugshotClear)    mugshotClear.style.display  = 'inline-flex';
+    });
+
+    window.AiClearMugshot = function () {
+        const preview = document.getElementById('ai-mugshot-preview');
+        if (mugshotInput)       mugshotInput.value         = '';
+        if (mugshotImg)       { mugshotImg.src = ''; mugshotImg.style.display = 'none'; }
+        if (mugshotPlaceholder) mugshotPlaceholder.style.display = '';
+        if (mugshotFilename)    mugshotFilename.textContent = 'No file chosen';
+        if (mugshotClear)       mugshotClear.style.display  = 'none';
+        if (preview)            preview.classList.remove('has-photo');
+    };
+
+    // ── CELL PICKER MODAL ────────────────────────────────────────────
+    // The trigger button (#ai-cell-trigger) opens #ai-cell-modal.
+    // Inside the modal, a live search input filters the available-cells list.
+    // Clicking a row commits the cell_id to the hidden #ai-cell input and
+    // closes the modal. The confirmation badge is updated accordingly.
+
+    let cellSearchData   = [];   // full list fetched once
+    let cellSearchLoaded = false;
+
+    // DOM refs used across modal functions
+    const cellHiddenInput   = document.getElementById('ai-cell');
+    const cellSelectedBadge = document.getElementById('ai-cell-selected-badge');
+    const cellSelectedText  = document.getElementById('ai-cell-selected-text');
+    const cellClearBtn      = document.getElementById('ai-cell-clear');
+    const cellTrigger       = document.getElementById('ai-cell-trigger');
+    const cellTriggerText   = document.getElementById('ai-cell-trigger-text');
+
+    // ── Fetch (once) ─────────────────────────────────────────────────
+    async function fetchCellData() {
+        if (cellSearchLoaded) return;
+        try {
+            const res  = await fetch('/admin/cells/data', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+
+            // Only cells that can still accept inmates
+            cellSearchData   = (data.cells || []).filter(c => c.status === 'available');
+            cellSearchLoaded = true;
+        } catch (err) {
+            console.warn('Could not load cell list:', err);
+        }
+    }
+
+    // ── Render modal list ────────────────────────────────────────────
+    function renderModalList(query) {
+        const list = document.getElementById('ai-cell-modal-list');
+        const countEl = document.getElementById('ai-cell-modal-count');
+        if (!list) return;
+
+        const q       = query.trim().toLowerCase();
+        const matched = q
+            ? cellSearchData.filter(c =>
+                c.cell_id.toLowerCase().includes(q) ||
+                (c.type || '').toLowerCase().includes(q)
+              )
+            : cellSearchData;
+
+        list.innerHTML = '';
+
+        if (matched.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'ai-cell-modal-empty';
+            li.textContent = q ? 'No cells match your search.' : 'No available cells.';
+            list.appendChild(li);
+            if (countEl) countEl.textContent = '';
+            return;
+        }
+
+        if (countEl) countEl.textContent = `${matched.length} cell${matched.length !== 1 ? 's' : ''} available`;
+
+        matched.forEach(c => {
+            const li      = document.createElement('li');
+            li.className  = 'ai-cell-modal-row';
+            li.role       = 'option';
+            li.dataset.id = c.id;   // numeric PK
+
+            // Highlight currently selected cell (compare against stored numeric PK)
+            if (cellHiddenInput?.value === String(c.id)) {
+                li.classList.add('ai-cell-modal-row--selected');
+            }
+
+            const pct    = c.capacity > 0 ? Math.round((c.occupancy / c.capacity) * 100) : 0;
+            const dotCls = pct >= 80 ? 'warn' : 'ok';
+
+            li.innerHTML = `
+                <span class="ai-cell-modal-col-id">
+                    <span class="ai-cell-modal-dot ${dotCls}"></span>
+                    ${escHtml(c.cell_id)}
+                </span>
+                <span class="ai-cell-modal-col-type">${escHtml(c.type || '—')}</span>
+                <span class="ai-cell-modal-col-occ">${c.occupancy} / ${c.capacity}</span>
+            `;
+
+            li.addEventListener('click', () => commitCell(c));
+            list.appendChild(li);
+        });
+    }
+
+    // ── Commit selection ─────────────────────────────────────────────
+    function commitCell(cell) {
+        // Store the numeric primary key (id) as the FK value sent to the server.
+        // The human-readable cell_id is used only for display purposes.
+        if (cellHiddenInput) cellHiddenInput.value = cell.id;
+
+        // Update trigger button label (display cell_id string, not the PK)
+        if (cellTriggerText) cellTriggerText.textContent = cell.cell_id;
+        if (cellTrigger)     cellTrigger.classList.add('ai-cell-trigger--selected');
+
+        // Update confirmation badge
+        if (cellSelectedText)  cellSelectedText.textContent = `${cell.cell_id} · ${cell.type || '—'} · ${cell.occupancy}/${cell.capacity}`;
+        if (cellSelectedBadge) cellSelectedBadge.style.display = 'flex';
+        if (cellClearBtn)      cellClearBtn.style.display = 'inline-flex';
+
+        // Clear any lingering validation error
+        const wrap = document.getElementById('ai-cell-search-wrap');
+        wrap?.querySelector('.ai-field-error')?.remove();
+        wrap?.classList.remove('ai-input-error');
+
+        AiCloseCellModal();
+    }
+
+    // ── Open / close modal ───────────────────────────────────────────
+    window.AiOpenCellModal = async function () {
+        const modal = document.getElementById('ai-cell-modal');
+        if (!modal) return;
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        // Show spinner while data loads
+        const list = document.getElementById('ai-cell-modal-list');
+        if (list && !cellSearchLoaded) {
+            list.innerHTML = `
+                <li class="ai-cell-modal-loading">
+                    <svg class="ai-cell-modal-spinner" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83
+                                 M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    Loading cells…
+                </li>`;
+        }
+
+        await fetchCellData();
+
+        // Clear and focus search
+        const searchInput = document.getElementById('ai-cell-modal-search');
+        if (searchInput) { searchInput.value = ''; searchInput.focus(); }
+
+        const searchClear = document.getElementById('ai-cell-modal-search-clear');
+        if (searchClear) searchClear.style.display = 'none';
+
+        renderModalList('');
+    };
+
+    window.AiCloseCellModal = function () {
+        const modal = document.getElementById('ai-cell-modal');
+        if (!modal) return;
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        cellTrigger?.focus();
+    };
+
+    // Close when clicking the dark overlay (not the modal card itself)
+    window.AiCellModalOverlayClick = function (e) {
+        if (e.target === document.getElementById('ai-cell-modal')) {
+            AiCloseCellModal();
+        }
+    };
+
+    // Live search inside the modal
+    window.AiCellModalFilter = function (value) {
+        renderModalList(value);
+        const clearBtn = document.getElementById('ai-cell-modal-search-clear');
+        if (clearBtn) clearBtn.style.display = value.trim() ? 'flex' : 'none';
+    };
+
+    // Clear the modal search input
+    window.AiCellModalClearSearch = function () {
+        const searchInput = document.getElementById('ai-cell-modal-search');
+        if (searchInput) { searchInput.value = ''; searchInput.focus(); }
+        const clearBtn = document.getElementById('ai-cell-modal-search-clear');
+        if (clearBtn) clearBtn.style.display = 'none';
+        renderModalList('');
+    };
+
+    // Keyboard: Escape closes the modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('ai-cell-modal');
+            if (modal && modal.style.display !== 'none') AiCloseCellModal();
+        }
+    });
+
+    // ── Clear selection ───────────────────────────────────────────────
+    window.AiClearCellSelection = function () {
+        if (cellHiddenInput)   cellHiddenInput.value = '';
+        if (cellSelectedBadge) cellSelectedBadge.style.display = 'none';
+        if (cellClearBtn)      cellClearBtn.style.display = 'none';
+        if (cellTriggerText)   cellTriggerText.textContent = 'Select a cell…';
+        if (cellTrigger)       cellTrigger.classList.remove('ai-cell-trigger--selected');
+    };
+
+    // ── FORM SUBMIT ──────────────────────────────────────────────────
     document.getElementById('addInmateForm')?.addEventListener('submit', function (e) {
         e.preventDefault();
 
         if (!validateStep(3)) return;
 
-        // Build the payload from FormData + structured crimes array
         const formData = new FormData(this);
-        const payload  = Object.fromEntries(formData.entries());
 
-        // Attach crimes as a proper nested array (built by JS, not hidden inputs)
-        payload.crimes = crimes.map(c => ({
-            crime_name:         c.name,
-            crime_date:         c.date,
-            crime_location:     c.location,
-            law_offended:       c.law,
-            crime_description:  c.desc,
-            sentence_years:     c.years,
-            sentence_months:    c.months,
-            verdict_date:       c.verdictDate,
-            case_number:        c.caseNum,
-            prosecutor:         c.prosecutor,
-            judge:              c.judge,
-            victims:            c.victims,
-        }));
+        formData.delete('crimes');
+        crimes.forEach((c, idx) => {
+            const crimeObj = {
+                crime_name:        c.name,
+                crime_date:        c.date,
+                crime_location:    c.location,
+                law_offended:      c.law,
+                crime_description: c.desc,
+                sentence_years:    c.years,
+                sentence_months:   c.months,
+                verdict_date:      c.verdictDate,
+                case_number:       c.caseNum,
+                prosecutor:        c.prosecutor,
+                judge:             c.judge,
+            };
+            Object.entries(crimeObj).forEach(([key, val]) => {
+                formData.append(`crimes[${idx}][${key}]`, val ?? '');
+            });
+            c.victims.forEach((v, vi) => {
+                formData.append(`crimes[${idx}][victims][${vi}][name]`,       v.name       ?? '');
+                formData.append(`crimes[${idx}][victims][${vi}][age]`,        v.age        ?? '');
+                formData.append(`crimes[${idx}][victims][${vi}][testifiers]`, v.testifiers ?? '');
+                formData.append(`crimes[${idx}][victims][${vi}][relation]`,   v.relation   ?? '');
+            });
+        });
 
-        // Disable submit button to prevent double submission
         const submitBtn = this.querySelector('.ai-btn-submit');
         if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Saving...'; }
 
         fetch('/admin/inmates', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                 'Accept':       'application/json',
             },
-            body: JSON.stringify(payload),
+            body: formData,
         })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-
-                //Reset Form and go back to steps 1 (in case admin wants to add another inmate right away)
                 document.getElementById('addInmateForm').reset();
+                AiClearMugshot();
+                AiClearCellSelection();
                 crimes.length = 0;
                 renderCrimes();
                 AiNextStep(1);
-
-                // Then go back to inmates list
                 ShowPage('inmates');
             } else {
-                // Show validation errors returned from Laravel
                 console.error('Validation errors:', data.errors);
                 alert('Please check the form for errors:\n' + Object.values(data.errors || {}).flat().join('\n'));
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Inmate Record'; }
@@ -100,7 +345,7 @@ function initAddInmatePage() {
 
     function validateStep(stepNum) {
         clearErrors(stepNum);
-        const required = STEP_REQUIRED[stepNum] || [];
+        const required     = STEP_REQUIRED[stepNum] || [];
         const firstInvalid = [];
 
         required.forEach(id => {
@@ -112,9 +357,9 @@ function initAddInmatePage() {
                 if (firstInvalid.length === 0) firstInvalid.push(el);
 
                 const msg = document.createElement('span');
-                msg.className = 'ai-field-error';
+                msg.className   = 'ai-field-error';
                 msg.textContent = 'This field is required.';
-                const wrapper = el.closest('.ai-select-wrapper') || el;
+                const wrapper   = el.closest('.ai-select-wrapper') || el;
                 wrapper.insertAdjacentElement('afterend', msg);
 
                 const clear = () => { el.classList.remove('ai-input-error'); msg.remove(); };
@@ -123,11 +368,14 @@ function initAddInmatePage() {
             }
         });
 
+        // NOTE: Cell assignment is optional — no validation block needed here.
+        // #ai-cell hidden input may be blank; the server accepts null for cell_id.
+
         if (stepNum === 3 && crimes.length === 0) {
             const noCrimes = document.getElementById('ai-no-crimes');
             if (noCrimes) {
-                noCrimes.style.color = 'var(--red)';
-                noCrimes.textContent = 'At least one offense must be added before submitting.';
+                noCrimes.style.color   = 'var(--red)';
+                noCrimes.textContent   = 'At least one offense must be added before submitting.';
             }
             return false;
         }
@@ -140,8 +388,8 @@ function initAddInmatePage() {
     }
 
     window.AiNextStep = function (targetStep) {
-        const activeSection  = document.querySelector('.ai-section.active');
-        const currentNum     = activeSection ? parseInt(activeSection.id.replace('ai-section-', '')) : 1;
+        const activeSection = document.querySelector('.ai-section.active');
+        const currentNum    = activeSection ? parseInt(activeSection.id.replace('ai-section-', '')) : 1;
 
         if (targetStep > currentNum) {
             if (!validateStep(currentNum)) return;
@@ -234,22 +482,21 @@ function initAddInmatePage() {
     };
 
     // ── CRIME FORM STATE ─────────────────────────────────────────────
-    const crimes = []; // { id, name, date, location, law, desc, years, months, verdictDate, caseNum, prosecutor, judge, victims[] }
+    const crimes = [];
     let crimeIdCounter = 0;
-    let editingCrimeId = null; // null = adding new, number = editing existing
+    let editingCrimeId = null;
 
-    const CF_FIELDS = ['cf-crimeName', 'cf-crimeDate', 'cf-lawOffended', 'cf-sentenceYears']; // required
+    const CF_FIELDS = ['cf-crimeName', 'cf-crimeDate', 'cf-lawOffended', 'cf-sentenceYears'];
 
     function getCrimeFormValues() {
-        // Collect victim rows from the form panel
         const victimRows = document.querySelectorAll('#ai-victims-list .ai-victim-row');
         const victims = [];
         victimRows.forEach(row => {
             const id = row.id.replace('victim-row-', '');
             victims.push({
-                name:     document.getElementById(`vf-name-${id}`)?.value.trim()     || '',
-                age:      document.getElementById(`vf-age-${id}`)?.value.trim()      || '',
-                relation: document.getElementById(`vf-relation-${id}`)?.value.trim() || '',
+                name:       document.getElementById(`vf-name-${id}`)?.value.trim()       || '',
+                age:        document.getElementById(`vf-age-${id}`)?.value.trim()         || '',
+                relation:   document.getElementById(`vf-relation-${id}`)?.value.trim()   || '',
                 testifiers: document.getElementById(`vf-testifiers-${id}`)?.value.trim() || '',
             });
         });
@@ -275,14 +522,12 @@ function initAddInmatePage() {
          'cf-sentenceYears','cf-sentenceMonths','cf-verdictDate','cf-caseNumber','cf-prosecutor','cf-judge']
             .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 
-        // Clear victim rows
         const list = document.getElementById('ai-victims-list');
         if (list) list.innerHTML = '';
         const noNote = document.getElementById('ai-no-victims');
         if (noNote) { noNote.style.display = ''; noNote.textContent = 'No victims added. Click "Add Victim" if applicable.'; }
         victimCount = 0;
 
-        // Clear inline errors inside crime form
         document.querySelectorAll('#ai-crime-form-panel .ai-input-error').forEach(el => el.classList.remove('ai-input-error'));
         document.querySelectorAll('#ai-crime-form-panel .ai-field-error').forEach(el => el.remove());
     }
@@ -292,7 +537,6 @@ function initAddInmatePage() {
         CF_FIELDS.forEach(id => {
             const el = document.getElementById(id);
             if (!el) return;
-            // Remove old error
             el.classList.remove('ai-input-error');
             el.parentElement?.querySelector('.ai-field-error')?.remove();
             el.nextElementSibling?.classList.contains('ai-field-error') && el.nextElementSibling.remove();
@@ -301,7 +545,7 @@ function initAddInmatePage() {
                 valid = false;
                 el.classList.add('ai-input-error');
                 const msg = document.createElement('span');
-                msg.className = 'ai-field-error';
+                msg.className   = 'ai-field-error';
                 msg.textContent = 'This field is required.';
                 el.insertAdjacentElement('afterend', msg);
                 const clear = () => { el.classList.remove('ai-input-error'); msg.remove(); };
@@ -316,9 +560,9 @@ function initAddInmatePage() {
     }
 
     function renderCrimes() {
-        const list     = document.getElementById('ai-crimes-list');
-        const noLabel  = document.getElementById('ai-no-crimes');
-        const hidden   = document.getElementById('ai-crimes-hidden');
+        const list    = document.getElementById('ai-crimes-list');
+        const noLabel = document.getElementById('ai-no-crimes');
+        const hidden  = document.getElementById('ai-crimes-hidden');
 
         if (!list) return;
         list.innerHTML   = '';
@@ -338,24 +582,22 @@ function initAddInmatePage() {
         crimes.forEach((c, idx) => {
             const n = idx + 1;
 
-            // ── Summary card ──
             const card = document.createElement('div');
             card.className = 'ai-crime-card';
             card.id = `crime-card-${c.id}`;
 
-            const sentenceStr = [c.years ? `${c.years} yr${c.years != 1 ? 's' : ''}` : '',
+            const sentenceStr = [c.years  ? `${c.years} yr${c.years != 1 ? 's' : ''}`  : '',
                                  c.months ? `${c.months} mo` : ''].filter(Boolean).join(', ') || '—';
             const victimList  = c.victims.filter(v => v.name);
             const victimStr   = victimList.map(v => v.name).join(', ') || 'None';
 
-            // Build victim rows HTML for the expanded list
             const victimRowsHtml = victimList.length
                 ? victimList.map(v => `
                     <div class="ai-crime-victim-row">
                         <span class="ai-crime-victim-name">${escHtml(v.name)}</span>
-                        ${v.age      ? `<span class="ai-crime-victim-detail">Age ${escHtml(v.age)}</span>` : ''}
+                        ${v.age        ? `<span class="ai-crime-victim-detail">Age ${escHtml(v.age)}</span>` : ''}
                         ${v.testifiers ? `<span class="ai-crime-victim-detail">${escHtml(v.testifiers)}</span>` : ''}
-                        ${v.relation ? `<span class="ai-crime-victim-detail">${escHtml(v.relation)}</span>` : ''}
+                        ${v.relation   ? `<span class="ai-crime-victim-detail">${escHtml(v.relation)}</span>` : ''}
                     </div>`).join('')
                 : `<p class="ai-crime-victim-none">No victims / witnesses recorded.</p>`;
 
@@ -395,31 +637,6 @@ function initAddInmatePage() {
                 </div>
             `;
             list.appendChild(card);
-
-            // ── Hidden inputs for form submission ──
-            const fields = {
-                crime_name: c.name, crime_date: c.date, crime_location: c.location,
-                law_offended: c.law, crime_description: c.desc,
-                sentence_years: c.years, sentence_months: c.months,
-                verdict_date: c.verdictDate, case_number: c.caseNum,
-                prosecutor: c.prosecutor, judge: c.judge,
-            };
-            Object.entries(fields).forEach(([key, val]) => {
-                const inp = document.createElement('input');
-                inp.type  = 'hidden';
-                inp.name  = `crimes[${idx}][${key}]`;
-                inp.value = val;
-                hidden.appendChild(inp);
-            });
-            c.victims.forEach((v, vi) => {
-                ['name','age','relation'].forEach(vk => {
-                    const inp = document.createElement('input');
-                    inp.type  = 'hidden';
-                    inp.name  = `crimes[${idx}][victims][${vi}][${vk}]`;
-                    inp.value = v[vk];
-                    hidden.appendChild(inp);
-                });
-            });
         });
     }
 
@@ -445,7 +662,6 @@ function initAddInmatePage() {
         panel.style.display = 'none';
         if (btn) btn.disabled = false;
 
-        // Reset edit state
         editingCrimeId = null;
         const panelTitle = document.getElementById('ai-crime-form-title');
         const saveBtn    = document.getElementById('ai-save-crime-btn');
@@ -461,18 +677,15 @@ function initAddInmatePage() {
         const vals = getCrimeFormValues();
 
         if (editingCrimeId !== null) {
-            // Update existing crime in-place
             const idx = crimes.findIndex(c => c.id === editingCrimeId);
             if (idx !== -1) crimes[idx] = { id: editingCrimeId, ...vals };
             editingCrimeId = null;
 
-            // Restore panel title and button label
             const panelTitle = document.getElementById('ai-crime-form-title');
             const saveBtn    = document.getElementById('ai-save-crime-btn');
             if (panelTitle) panelTitle.textContent = 'Add Offense';
             if (saveBtn)    saveBtn.textContent    = 'Save Crime';
         } else {
-            // Add new crime
             crimeIdCounter++;
             crimes.push({ id: crimeIdCounter, ...vals });
         }
@@ -480,7 +693,6 @@ function initAddInmatePage() {
         AiCloseCrimeForm();
         renderCrimes();
 
-        // Clear "at least one crime" error if it was showing
         const noLabel = document.getElementById('ai-no-crimes');
         if (noLabel) { noLabel.style.color = ''; }
     };
@@ -490,37 +702,32 @@ function initAddInmatePage() {
         if (!crime) return;
 
         editingCrimeId = id;
-
-        // Open the form panel
         AiOpenCrimeForm();
 
-        // Update panel title and button label to reflect edit mode
         const panelTitle = document.getElementById('ai-crime-form-title');
         const saveBtn    = document.getElementById('ai-save-crime-btn');
         if (panelTitle) panelTitle.textContent = 'Edit Offense';
         if (saveBtn)    saveBtn.textContent    = 'Update Crime';
 
-        // Populate scalar fields
         const fieldMap = {
-            'cf-crimeName':     crime.name,
-            'cf-crimeDate':     crime.date,
-            'cf-crimeLocation': crime.location,
-            'cf-lawOffended':   crime.law,
-            'cf-crimeDesc':     crime.desc,
-            'cf-sentenceYears': crime.years,
-            'cf-sentenceMonths':crime.months,
-            'cf-verdictDate':   crime.verdictDate,
-            'cf-testifiers':    crime.testifiers,
-            'cf-caseNumber':    crime.caseNum,
-            'cf-prosecutor':    crime.prosecutor,
-            'cf-judge':         crime.judge,
+            'cf-crimeName':      crime.name,
+            'cf-crimeDate':      crime.date,
+            'cf-crimeLocation':  crime.location,
+            'cf-lawOffended':    crime.law,
+            'cf-crimeDesc':      crime.desc,
+            'cf-sentenceYears':  crime.years,
+            'cf-sentenceMonths': crime.months,
+            'cf-verdictDate':    crime.verdictDate,
+            'cf-testifiers':     crime.testifiers,
+            'cf-caseNumber':     crime.caseNum,
+            'cf-prosecutor':     crime.prosecutor,
+            'cf-judge':          crime.judge,
         };
         Object.entries(fieldMap).forEach(([elId, val]) => {
             const el = document.getElementById(elId);
             if (el) el.value = val || '';
         });
 
-        // Repopulate victim rows
         const list = document.getElementById('ai-victims-list');
         if (list) list.innerHTML = '';
         victimCount = 0;
@@ -565,22 +772,6 @@ function initAddInmatePage() {
         if (idx !== -1) crimes.splice(idx, 1);
         renderCrimes();
     };
-
-    // ── FORM SUBMIT ──────────────────────────────────────────────────
-    document.getElementById('addInmateForm')?.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        if (!validateStep(3)) return;
-
-        const data = Object.fromEntries(new FormData(this));
-        data.crimes = crimes; // also available as structured array
-        console.log('Inmate form payload:', data);
-
-        // TODO: POST to /admin/inmates via fetch() and redirect on success
-        // fetch('/admin/inmates', { method: 'POST', body: new FormData(this) })
-        //     .then(res => res.json())
-        //     .then(() => ShowPage('inmates'));
-    });
 }
 
 // Safe init — works whether the script fires before or after DOMContentLoaded

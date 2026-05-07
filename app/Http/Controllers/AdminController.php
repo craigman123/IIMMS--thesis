@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cell;
 use App\Models\Inmate;
 use App\Models\InmateCrime;
 use Carbon\Carbon;
@@ -17,11 +18,13 @@ class AdminController extends Controller
         $active_inmates = Inmate::where('status', 'active')->count();
         $inmates = Inmate::with('totalCrimes')->get();
         $crimes = InmateCrime::all();
+        $nextBlock = Cell::nextBlock();
 
         $total_crimes = DB::table('table_inmate_crimes')->count();
         $total_years = DB::table('table_inmate_crimes')->sum('sentence_years');
 
         $inmates_json = $inmates->map(function($i) {
+
         $total_years = $i->totalCrimes->sum('sentence_years');
 
         if ($i->admission_date && $total_years > 0) {
@@ -37,8 +40,11 @@ class AdminController extends Controller
                 'status'   => $i->status ?? 'unknown',
                 'admitted' => $i->admission_date ? Carbon::parse($i->admission_date)->format('M d, Y') : '—',
                 'release'  => $release,
+                'security'   => $i->security_lvl ?? 'unknown',
             ];
         });
+
+        // dd($inmates_json);
 
         return view('admin.admin_dashboard', compact(
             'nationalities',
@@ -47,7 +53,8 @@ class AdminController extends Controller
             'inmates',
             'inmates_json',
             'total_crimes',
-            'total_years'
+            'total_years',
+            'nextBlock',
         ));
     }
 }

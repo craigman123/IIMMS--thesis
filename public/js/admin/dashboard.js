@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pages      = document.querySelectorAll('.page');
     const breadcrumb = document.getElementById('breadcrumbCurrent');
 
-    // ── SHOW PAGE (global helper — used by add-inmate back btn, submit, etc.) ──
     window.ShowPage = function (pageId) {
         pages.forEach(p => p.classList.remove('active'));
         navItems.forEach(n => n.classList.remove('active'));
@@ -76,11 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 'overview':   'Overview',
                 'inmates':    'All Inmates',
                 'add-inmate': 'Add Inmate',
+                'add-cell':   'Add Cells',
                 'cells':      'Cell Management',
                 'incidents':  'Incidents',
-                'releases':   'Releases',
+                'schedules':  'Schedules',
                 'users':      'Users',
                 'logs':       'Logs',
+                'contacts':   'Contacts',
             };
             breadcrumb.textContent = labels[pageId] || pageId;
         }
@@ -89,10 +90,14 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebar.classList.remove('mobile-open');
         }
 
-        targetPage?.scrollIntoView({ block: 'start' });
+        if (targetPage) targetPage.scrollTop = 0;
+
+        // Delegate cell grid loading to cells.js
+        if (pageId === 'cells' && typeof window.loadCellGrid === 'function') {
+            window.loadCellGrid();
+        }
     };
 
-    // ── "Add Inmate" btn on inmates page → navigate (no modal) ──────
     window.OpenAddInmateModal = function () {
         ShowPage('add-inmate');
     };
@@ -104,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ── MOCK STATS ───────────────────────────────────────────────────
+    // ── STATS ────────────────────────────────────────────────────────
     function loadStats() {
         const stats = {
             total:     inmateCount,
@@ -155,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (el) el.textContent = val;
     }
 
-    // ── MOCK ACTIVITY FEED ───────────────────────────────────────────
+    // ── ACTIVITY FEED ────────────────────────────────────────────────
     function loadActivity() {
         const activities = [
             { color: 'green', text: 'Inmate <strong>Juan Dela Cruz</strong> admitted to Cell B-12.',     time: '2m ago'  },
@@ -183,40 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 800);
     }
 
-    // ── MOCK CELL GRID ───────────────────────────────────────────────
-    function loadCellGrid() {
-        const grid = document.getElementById('cellGrid');
-        if (!grid) return;
-
-        const blocks = ['A', 'B', 'C', 'D'];
-        const cells  = [];
-
-        blocks.forEach(block => {
-            for (let i = 1; i <= 12; i++) {
-                const num    = String(i).padStart(2, '0');
-                const rand   = Math.random();
-                const status = rand < 0.05 ? 'empty' : rand < 0.15 ? 'full' : 'occupied';
-                const occ    = status === 'empty' ? 0 : status === 'full' ? 4 : Math.floor(Math.random() * 3) + 1;
-                cells.push({ id: `${block}-${num}`, status, occ, max: 4 });
-            }
-        });
-
-        grid.innerHTML = '';
-        cells.forEach(c => {
-            const el = document.createElement('div');
-            el.className = `cell-block ${c.status}`;
-            el.innerHTML = `
-                <span class="cell-number">${c.id}</span>
-                <span class="cell-occupancy">${c.occ} / ${c.max}</span>
-            `;
-            el.title = `Cell ${c.id} — ${c.occ}/${c.max} occupied`;
-            grid.appendChild(el);
-        });
-    }
-
     // ── INIT ─────────────────────────────────────────────────────────
     loadStats();
     loadActivity();
-    loadCellGrid();
-    // Note: loadInmateTable() and inmateSearch are handled by inmates.js
+    // Note: cell grid is loaded by cells.js on pageChanged / mount
+    // Note: inmate table and search are handled by inmates.js
 });

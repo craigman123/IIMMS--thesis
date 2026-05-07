@@ -14,13 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setTimeout(() => {
             tbody.innerHTML = '';
-            inmates.forEach(inmate => {
+                inmates.forEach(inmate => {
+                let seclvl = '';
+
+                if (inmate.security === 'normal') { seclvl = '😁'; }
+                else if (inmate.security === 'medium') { seclvl = '😑'; }
+                else if (inmate.security === 'max') { seclvl = '🛑'; }
+                else if (inmate.security === 'extreme') { seclvl = '😡'; }
+                else if (inmate.security === 'deathrow') { seclvl = '💀'; }
+
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td style="color:var(--muted);font-size:12px">${inmate.id}</td>
                     <td style="font-weight:500;color:var(--white)">${inmate.name}</td>
                     <td>${inmate.cell}</td>
                     <td><span class="status-badge ${inmate.status}">${capitalize(inmate.status)}</span></td>
+                    <td>
+                        <span class="security-badge ${inmate.security}">${capitalize(inmate.security)}</span>
+                        <span style="margin-left:6px">${seclvl}</span>
+                    </td>
                     <td>${inmate.admitted}</td>
                     <td>${inmate.release}</td>
                     <td>

@@ -21,6 +21,16 @@
     --purple-dim:  rgba(170, 76, 207, 0.15);
     --purple:      #b94ccf;
 
+    --grey:        #444444;
+    --grey-dim:    rgba(240,244,248,.55);
+    --yellowish-gold: #ffb516;
+    --yellowish-gold-dim: #926300;
+    --angry-red:   rgb(105, 0, 0);
+    --angry-red-dim: rgb(179, 37, 37);
+    --mad-red:     rgb(37, 0, 0);
+    --mad-red-dim: rgb(115, 0, 0);
+    --perfect-black: black;
+
     --sidebar-w:   260px;
     --sidebar-collapsed: 68px;
     --topbar-h:    64px;
@@ -288,7 +298,7 @@ html, body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--navy);
+    background: var(--navy-mid);
 }
 
 /* ── TOPBAR ── */
@@ -368,13 +378,16 @@ html, body {
 /* ── PAGES ── */
 .page {
     display: none;
-    flex: 1;
+}
+
+.page.active {
+    display: block;
+    height: calc(100vh - var(--topbar-h));
     overflow-y: auto;
     padding: 32px 32px 48px;
     animation: fadeUp .3s ease;
+    box-sizing: border-box;
 }
-
-.page.active { display: block; }
 
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(12px); }
@@ -717,7 +730,7 @@ html, body {
 .empty-cell { text-align: center; color: var(--muted); padding: 32px !important; }
 
 /* Status badges */
-.status-badge {
+.status-badge, .security-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -727,12 +740,19 @@ html, body {
     font-weight: 600;
 }
 
-.status-badge.new      { background: var(--gold-dim);  color: var(--gold);  }
-.status-badge.transferred { background: var(--purple-dim); color: var(--purple); }
-.status-badge.active   { background: var(--green-dim); color: var(--green); }
-.status-badge.released { background: var(--blue-dim);  color: var(--blue);  }
-.status-badge.incident { background: var(--red-dim);   color: var(--red);   }
-.status-badge.pending  { background: var(--gold-dim);  color: var(--gold);  }
+.status-badge.new           { background: var(--gold-dim);  color: var(--gold);  }
+.status-badge.transferred   { background: var(--purple-dim); color: var(--purple); }
+.status-badge.active        { background: var(--green-dim); color: var(--green); }
+.status-badge.released      { background: var(--blue-dim);  color: var(--blue);  }
+.status-badge.incident      { background: var(--red-dim);   color: var(--red);   }
+.status-badge.pending       { background: var(--gold-dim);  color: var(--gold);  }
+
+.security-badge.normal      { background: var(--grey-dim); color: var(--grey); }
+.security-badge.medium      { background: var(--yellowish-gold);  color: var(--yellowish-gold-dim);  }
+.security-badge.max         { background: var(--angry-red-dim);   color: var(--angry-red);   }
+.security-badge.extreme     { background: var(--mad-red-dim);  color: var(--mad-red);  }
+.security-badge.deathrow    { background: var(--perfect-black);   color: var(--white);   }
+
 
 /* Action buttons */
 .action-btn {
@@ -822,4 +842,311 @@ html, body {
 @media (max-width: 480px) {
     .stats-grid { grid-template-columns: 1fr; }
     .topbar-date { display: none; }
+}
+
+/* ── CELL GRID ADDITIONS — append to dashboard.css ── */
+
+/* Filter select — matches existing dark theme */
+.cell-select {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px;
+    padding: 7px 12px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--transition);
+}
+.cell-select:focus { border-color: var(--gold); }
+.cell-select option { background: var(--navy-mid); }
+
+/* Cell block — extended to show type + status dot */
+.cell-block {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 90px;
+}
+
+.cell-block.maintenance {
+    border-color: var(--blue);
+    background: var(--blue-dim);
+    opacity: .8;
+}
+
+.cell-block.condemned {
+    border-color: var(--muted);
+    opacity: .5;
+}
+
+/* Type tag — small label under cell ID */
+.cell-type-tag {
+    font-size: 9.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    font-weight: 600;
+}
+
+/* Status dot — bottom right corner */
+.cell-status-dot {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+}
+.cell-status-dot.available   { background: var(--green); }
+.cell-status-dot.full        { background: var(--red); }
+.cell-status-dot.maintenance { background: var(--blue); }
+.cell-status-dot.condemned   { background: var(--muted); }
+
+/* Overlay */
+.cell-edit-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 31, 53, 0.70);
+    backdrop-filter: blur(3px);
+    z-index: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.cell-edit-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Modal panel */
+.cell-edit-modal {
+    background: var(--navy-mid);
+    border: 1px solid var(--navy-border);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 460px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+    transition: transform .28s cubic-bezier(.4, 0, .2, 1),
+                opacity    .28s cubic-bezier(.4, 0, .2, 1);
+    box-shadow: 0 24px 64px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.04);
+}
+
+.cell-edit-overlay.open .cell-edit-modal {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+/* ── Header ── */
+.cell-edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 22px 18px;
+    border-bottom: 1px solid var(--navy-border);
+}
+
+.cell-edit-title {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.cell-edit-title-main {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--white);
+    line-height: 1;
+}
+
+.cell-edit-title-sub {
+    font-size: 11.5px;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.cell-edit-close {
+    background: none;
+    border: 1px solid var(--navy-border);
+    border-radius: 7px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.cell-edit-close:hover {
+    color: var(--red);
+    border-color: var(--red);
+    background: var(--red-dim);
+}
+
+/* ── Body / Form ── */
+.cell-edit-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.cell-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cell-edit-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.cell-edit-input,
+.cell-edit-select {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cell-edit-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a90a8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+.cell-edit-input:focus,
+.cell-edit-select:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-dim);
+}
+
+.cell-edit-input::placeholder {
+    color: var(--muted);
+    opacity: .6;
+}
+
+/* Capacity field — number with constraints hint */
+.cell-edit-hint {
+    font-size: 10.5px;
+    color: var(--muted);
+    opacity: .8;
+}
+
+/* Inline error */
+.cell-edit-error {
+    display: none;
+    font-size: 11px;
+    color: var(--red);
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.cell-edit-field.has-error .cell-edit-input,
+.cell-edit-field.has-error .cell-edit-select {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px var(--red-dim);
+}
+
+.cell-edit-field.has-error .cell-edit-error {
+    display: block;
+}
+
+/* Warning banner (capacity < occupancy) */
+.cell-edit-warning {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--red-dim);
+    border: 1px solid rgba(219,68,68,.25);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--red);
+    font-weight: 600;
+}
+
+.cell-edit-warning.visible {
+    display: flex;
+}
+
+/* ── Footer ── */
+.cell-edit-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 22px;
+    border-top: 1px solid var(--navy-border);
+    background: var(--navy-mid);
+}
+
+/* Save button loading state */
+.btn-gold.loading {
+    opacity: .7;
+    pointer-events: none;
+    position: relative;
+}
+
+.btn-gold.loading .btn-label { visibility: hidden; }
+
+.btn-gold.loading::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(13,31,53,.4);
+    border-top-color: var(--navy);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+    .cell-edit-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .cell-edit-modal {
+        max-width: 100%;
+        border-radius: 14px 14px 0 0;
+        transform: translateY(100%);
+    }
+
+    .cell-edit-overlay.open .cell-edit-modal {
+        transform: translateY(0);
+    }
 }

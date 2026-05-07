@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Verification Code</title>
+<title>{{ $context === 'login' ? 'Sign-In Verification Code' : 'Email Verification Code' }}</title>
 <style>
     body        { margin:0; padding:0; background:#f4f4f5; font-family: 'Segoe UI', Arial, sans-serif; }
     .wrapper    { max-width:480px; margin:40px auto; background:#fff; border-radius:12px;
                   box-shadow:0 2px 12px rgba(0,0,0,.08); overflow:hidden; }
     .header     { background:#1a3a5c; padding:32px 40px; text-align:center; }
     .header h1  { margin:0; color:#fff; font-size:20px; letter-spacing:.5px; font-weight:600; }
+    .header p   { margin:6px 0 0; color:#93c5fd; font-size:13px; letter-spacing:.3px; }
     .body       { padding:36px 40px; }
     .body p     { margin:0 0 16px; color:#374151; font-size:15px; line-height:1.6; }
     .otp-box    { margin:28px 0; text-align:center; }
@@ -27,11 +28,23 @@
 <body>
 <div class="wrapper">
     <div class="header">
-        <h1>Email Verification</h1>
+        <h1>
+            @if ($context === 'login')
+                Sign-In Verification
+            @else
+                Email Verification
+            @endif
+        </h1>
+        <p>{{ config('app.name') }}</p>
     </div>
     <div class="body">
         <p>Hello,</p>
-        <p>Use the code below to verify your email address. Enter it in the registration form within <strong>10 minutes</strong>.</p>
+
+        @if ($context === 'login')
+            <p>A sign-in attempt was made on your account. Use the code below to complete your login. It expires in <strong>10 minutes</strong>.</p>
+        @else
+            <p>Use the code below to verify your email address. Enter it in the registration form within <strong>10 minutes</strong>.</p>
+        @endif
 
         <div class="otp-box">
             <span class="otp-code">{{ $otp }}</span>
@@ -41,7 +54,13 @@
             <p>⚠️ Never share this code with anyone. Our staff will never ask for it.</p>
         </div>
 
-        <p style="margin-top:24px;">If you did not request this, you can safely ignore this email.</p>
+        <p style="margin-top:24px;">
+            @if ($context === 'login')
+                If you did not attempt to sign in, your account may be at risk. Please change your password immediately.
+            @else
+                If you did not request this, you can safely ignore this email.
+            @endif
+        </p>
     </div>
     <div class="footer">
         <p>This code expires in 10 minutes &nbsp;·&nbsp; {{ config('app.name') }}</p>

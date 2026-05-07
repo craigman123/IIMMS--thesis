@@ -1,6 +1,5 @@
 {{-- resources/views/admin/pages/inmates.blade.php --}}
 
-<link rel="stylesheet" href="{{ asset('css/admin/pages/inmates.css') }}">
 <div class="page" id="page-inmates">
     <div class="page-header">
         <h1>Inmate <span class="gold">Registry</span></h1>
@@ -27,6 +26,7 @@
                         <th>Name</th>
                         <th>Cell</th>
                         <th>Status</th>
+                        <th>Security Level</th>
                         <th>Admission Date</th>
                         <th>Release Date</th>
                         <th>Actions</th>
@@ -43,9 +43,3 @@
         </div>
     </div>
 </div>
-
-{{-- Inject inmates data from Laravel --}}
-<script>
-    const inmates = @json($inmates_json);
-</script>
-<script src="{{ asset('js/admin/pages/inmates.js') }}"></script>

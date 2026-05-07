@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('middle_name')->nullable();
 
             // ── Facility details ──────────────────────────────
-            $table->string('cell')->nullable();                         // e.g. B-12
+            $table->foreignId('cell_id')->nullable()->constrained('cells')->nullOnDelete(); // FK → cells.id
             $table->string('status')->nullable();                       // new | active | transferred | hold | pending
             $table->string('detention_type')->nullable();               // sentenced | detained | transferred
 
@@ -36,6 +36,8 @@ return new class extends Migration
             // ── Legal commitment ──────────────────────────────
             $table->string('commitment_order')->nullable();             // e.g. CO-2024-00123
             $table->string('court_branch')->nullable();                 // e.g. RTC Branch 14, Cebu City
+
+            $table->string('security_lvl')->nullable();
 
             $table->timestamps();
         });

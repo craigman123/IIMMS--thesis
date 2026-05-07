@@ -76,6 +76,8 @@ const otpState = {
     pendingEmail:  null,   // email currently waiting for OTP entry
 };
 
+const requireOtpVerification = window.requireOtpVerification ?? true;
+
 // ─── OTP Modal ────────────────────────────────────────────────────
 // Injects a lightweight modal into the DOM on first use.
 
@@ -345,6 +347,11 @@ function validateEmail(input, statusId) {
         return;
     }
 
+    if (!requireOtpVerification) {
+        setEmailStatus(statusId, 'valid', 'Email verification is disabled in local mode.');
+        return;
+    }
+
     // If the same email is already verified, show tick immediately
     if (otpState.verifiedEmail &&
         otpState.verifiedEmail.toLowerCase() === email.toLowerCase()) {
@@ -386,6 +393,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (regForm) {
         regForm.addEventListener('submit', (e) => {
+            if (!requireOtpVerification) {
+                return;
+            }
+
             const emailInput = regForm.querySelector('input[name="email"]');
             const email      = emailInput?.value.trim().toLowerCase();
 

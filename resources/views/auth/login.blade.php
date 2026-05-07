@@ -249,6 +249,9 @@
 @endsection
 
 @push('scripts')
+    <script>
+        window.requireOtpVerification = @json(!app()->environment('local'));
+    </script>
     <script src="{{ asset('js/login/login.js') }}" defer></script>
     <script>
         @if ($errors->any() && old('_form') === 'register')

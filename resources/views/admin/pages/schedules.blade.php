@@ -1,9 +1,9 @@
-{{-- resources/views/admin/pages/releases.blade.php --}}
+{{-- resources/views/admin/pages/schedules.blade.php --}}
 
-<div class="page" id="page-releases">
+<div class="page" id="page-schedules">
     <div class="page-header">
-        <h1>Scheduled <span class="gold">Releases</span></h1>
-        <p>Upcoming and past inmate releases.</p>
+        <h1>Scheduled <span class="gold">Events</span></h1>
+        <p>Upcoming and past inmate schedules.</p>
     </div>
     <div class="panel-card">
         <div class="table-wrapper">
@@ -19,7 +19,7 @@
                     </tr>
                 </thead>
                 <tbody id="releaseTableBody">
-                    <tr><td colspan="6" class="empty-cell">No releases scheduled.</td></tr>
+                    <tr><td colspan="6" class="empty-cell">No schedules available.</td></tr>
                 </tbody>
             </table>
         </div>

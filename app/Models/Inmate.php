@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Cell;
 use App\Models\InmateCrime;
 use App\Models\InmatePersonalInformation;
 use Illuminate\Database\Eloquent\Model;
@@ -14,19 +15,26 @@ class Inmate extends Model
         'last_name',
         'first_name',
         'middle_name',
-        'cell',
+        'cell_id',
         'status',
         'detention_type',
         'admission_date',
         'release_date',
         'commitment_order',
         'court_branch',
+        'security_lvl',
+        'mugshot_path',
     ];
 
     protected $casts = [
         'admitted_at'  => 'datetime',
         'release_date' => 'datetime',
     ];
+
+    public function cell()
+    {
+        return $this->belongsTo(Cell::class, 'cell_id');
+    }
 
     public function personalInformation()
     {
@@ -43,5 +51,4 @@ class Inmate extends Model
         return $this->hasMany(InmateCrime::class);
     }
 
-    
 }

@@ -11,8 +11,13 @@ use Illuminate\Queue\SerializesModels;
 /**
  * Mailable: OTP Verification Email
  *
- * Usage:
- *   Mail::to($email)->send(new VerifyOtpEmail($otp));
+ * Shared by both the login flow and the registration flow.
+ *
+ * Usage (login):
+ *   Mail::to($user->email)->send(new VerifyOtpEmail($otp, 'login'));
+ *
+ * Usage (registration):
+ *   Mail::to($email)->send(new VerifyOtpEmail($otp, 'register'));
  *
  * Configure SMTP in your .env:
  *   MAIL_MAILER=smtp
@@ -28,21 +33,25 @@ class VerifyOtpEmail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * The 6-digit OTP code (plain text — hashed copy lives in the session).
-     */
+    /** The 6-digit OTP code (plain text — hashed copy lives in the session). */
     public string $otp;
 
-    public function __construct(string $otp)
+    /** 'login' | 'register' — controls the email subject and body copy. */
+    public string $context;
+
+    public function __construct(string $otp, string $context = 'register')
     {
-        $this->otp = $otp;
+        $this->otp     = $otp;
+        $this->context = $context;
     }
 
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Your Verification Code',
-        );
+        $subject = $this->context === 'login'
+            ? 'Your Sign-In Verification Code'
+            : 'Your Email Verification Code';
+
+        return new Envelope(subject: $subject);
     }
 
     public function content(): Content

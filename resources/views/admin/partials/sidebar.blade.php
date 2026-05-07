@@ -66,17 +66,21 @@
             <span class="nav-badge alert" id="badge-incidents">—</span>
         </a>
 
-        <a href="#" class="nav-item" data-page="releases">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
+        <a href="#" class="nav-item" data-page="schedules">
+            <svg  xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24" >
+            <path d="M8 13h8v2H8z"></path><path d="M19 4h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M5 20V8h14V6v14z"></path>
             </svg>
-            <span class="nav-label">Releases</span>
+            <span class="nav-label">Schedules</span>
         </a>
 
         <div class="nav-section-label">Cell Management</div>
-
+        
+        <a href="#" class="nav-item" data-page="add-cell">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" >
+                <path d="M4.5 11h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5C3.67 3 3 3.67 3 4.5v5c0 .83.67 1.5 1.5 1.5M5 5h4v4H5zm14.5-2h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5M19 9h-4V5h4zM4.5 21h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5m.5-6h4v4H5zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3z"></path>
+            </svg>
+            <span class="nav-label">Add Cells</span>
+        </a>
         <a href="#" class="nav-item" data-page="cells">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -105,7 +109,18 @@
             </svg>
             <span class="nav-label">Audit Logs</span>
         </a>
+
+        <div class="nav-section-label">Contacts</div>
+
+        <a href="#" class="nav-item" data-page="contacts">
+            <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24" >
+            <path d="M18.07 22h.35c.47-.02.9-.26 1.17-.64l2.14-3.09c.23-.33.32-.74.24-1.14s-.31-.74-.64-.97l-4.64-3.09a1.47 1.47 0 0 0-.83-.25c-.41 0-.81.16-1.1.48l-1.47 1.59c-.69-.43-1.61-1.07-2.36-1.82-.72-.72-1.37-1.64-1.82-2.36l1.59-1.47c.54-.5.64-1.32.23-1.93L7.84 2.67c-.22-.33-.57-.57-.97-.64a1.46 1.46 0 0 0-1.13.24L2.65 4.41c-.39.27-.62.7-.64 1.17-.03.69-.16 6.9 4.68 11.74 4.35 4.35 9.81 4.69 11.38 4.69ZM6.88 10.05c-.16.15-.21.39-.11.59.05.09 1.15 2.24 2.74 3.84 1.6 1.6 3.75 2.7 3.84 2.75.2.1.44.06.59-.11l1.99-2.15 3.86 2.57-1.7 2.46c-1.16 0-6.13-.24-9.99-4.1S4 7.06 4 5.91l2.46-1.7 2.57 3.86-2.15 1.99Z"></path>
+            </svg>
+            <span class="nav-label">Emergency Contacts</span>
+        </a>
     </nav>
+
+    
 
     <div class="sidebar-footer">
         <div class="user-card">
@@ -127,9 +142,3 @@
         </form>
     </div>
 </aside>
-
-<script>
-    const inmateCount    = {{ count($inmates_json) }};
-    const active_inmates = {{ $active_inmates }};
-    const inmates        = @json($inmates_json);
-</script>

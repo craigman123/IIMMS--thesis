@@ -1,0 +1,343 @@
+/* ── CELL DETAIL DRAWER ─────────────────────────────────────────────────────
+   Append these rules to dashboard.css
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Overlay */
+.cell-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 31, 53, 0.55);
+    backdrop-filter: blur(2px);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+}
+
+.cell-drawer-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Drawer panel — slides in from the right */
+.cell-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 500px;
+    background: var(--navy-mid);
+    border-left: 1px solid var(--navy-border);
+    z-index: 400;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .3s cubic-bezier(.4, 0, .2, 1);
+    overflow: hidden;
+}
+
+.cell-drawer.open {
+    transform: translateX(0);
+}
+
+/* ── Header ── */
+.cell-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 22px 18px;
+    border-bottom: 1px solid var(--navy-border);
+    flex-shrink: 0;
+}
+
+.cell-drawer-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cell-drawer-id {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--white);
+    line-height: 1;
+}
+
+/* Status badge inside drawer header */
+.cell-drawer-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: capitalize;
+}
+
+.cell-drawer-badge.available   { background: var(--green-dim);  color: var(--green); }
+.cell-drawer-badge.full        { background: var(--red-dim);    color: var(--red);   }
+.cell-drawer-badge.maintenance { background: var(--blue-dim);   color: var(--blue);  }
+.cell-drawer-badge.condemned   { background: rgba(122,144,168,.15); color: var(--muted); }
+.cell-drawer-badge.occupied    { background: var(--gold-dim);   color: var(--gold);  }
+
+.cell-drawer-close {
+    background: none;
+    border: 1px solid var(--navy-border);
+    border-radius: 7px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.cell-drawer-close:hover {
+    color: var(--red);
+    border-color: var(--red);
+    background: var(--red-dim);
+}
+
+/* ── Meta grid (2×2) ── */
+.cell-drawer-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--navy-border);
+    border-bottom: 1px solid var(--navy-border);
+    flex-shrink: 0;
+}
+
+.cell-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 14px 22px;
+    background: var(--navy-mid);
+}
+
+.cell-meta-label {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.cell-meta-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+}
+
+/* ── Sections ── */
+.cell-drawer-section {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--navy-border);
+    flex-shrink: 0;
+}
+
+.cell-drawer-section:last-of-type {
+    border-bottom: none;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.cell-drawer-section-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+}
+
+/* ── Occupancy bar ── */
+.cell-occ-bar-track {
+    height: 8px;
+    background: var(--navy-border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.cell-occ-bar-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transition: width .8s cubic-bezier(.4, 0, .2, 1);
+}
+
+.cell-occ-bar-fill.warn { background: linear-gradient(90deg, #e07c4c, #e09c4c); }
+.cell-occ-bar-fill.full { background: linear-gradient(90deg, var(--red), #e07c4c); }
+
+.cell-occ-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+}
+
+/* ── Inmate count badge ── */
+.cell-inmate-count {
+    background: var(--navy-border);
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+/* ── Inmate list ── */
+.cell-inmate-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 2px;
+}
+
+.cell-inmate-list::-webkit-scrollbar { width: 4px; }
+.cell-inmate-list::-webkit-scrollbar-track { background: transparent; }
+.cell-inmate-list::-webkit-scrollbar-thumb { background: var(--navy-border); border-radius: 4px; }
+
+.cell-inmate-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 8px;
+    transition: border-color var(--transition), background var(--transition);
+    cursor: default;
+    animation: fadeUp .2s ease;
+}
+
+.cell-inmate-row:hover {
+    border-color: var(--gold-dim);
+    background: var(--gold-glow);
+}
+
+.cell-inmate-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--navy-light);
+    border: 1.5px solid var(--navy-border);
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'DM Sans', sans-serif;
+}
+
+.cell-inmate-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.cell-inmate-name {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.cell-inmate-sub {
+    display: block;
+    font-size: 10.5px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cell-inmate-status {
+    flex-shrink: 0;
+}
+
+/* Empty state inside drawer */
+.cell-inmate-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    color: var(--muted);
+    font-size: 12.5px;
+    gap: 8px;
+    text-align: center;
+}
+
+.cell-inmate-empty svg {
+    width: 32px;
+    height: 32px;
+    stroke: var(--navy-border);
+}
+
+/* Loading skeletons inside drawer */
+.cell-inmate-skeleton {
+    height: 52px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--navy-border) 25%, var(--navy-light) 50%, var(--navy-border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* ── Drawer actions footer ── */
+.cell-drawer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 22px;
+    border-top: 1px solid var(--navy-border);
+    flex-shrink: 0;
+    background: var(--navy-mid);
+}
+
+/* Outline muted button */
+.btn-outline-muted {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--navy-border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+    white-space: nowrap;
+}
+
+.btn-outline-muted:hover {
+    color: var(--white);
+    border-color: var(--white-dim);
+    background: var(--gold-glow);
+}
+
+/* ── Responsive: full-width on mobile ── */
+@media (max-width: 480px) {
+    .cell-drawer {
+        width: 100vw;
+        border-left: none;
+    }
+}

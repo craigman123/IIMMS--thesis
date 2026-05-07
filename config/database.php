@@ -93,8 +93,9 @@ return [
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'sslmode'  => env('DB_SSLMODE', 'require'),
-            'dsn'      => env('DB_DSN', ''),
-            'options'  => [],
+            'options' => [
+                PDO::ATTR_EMULATE_PREPARES => true,
+            ],
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,

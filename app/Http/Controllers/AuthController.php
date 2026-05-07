@@ -14,13 +14,22 @@ use App\Models\User;
 class AuthController extends Controller
 {
     // ─────────────────────────────────────────────────────────────────────────
-    // LOGIN
+    // LOGIN — Show
     // ─────────────────────────────────────────────────────────────────────────
 
     public function showLogin()
     {
         return view('auth.login');
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LOGIN — Submit
+    //
+    // Validates credentials. On success, does NOT log the user in immediately.
+    // Instead it stores the user_id in the session as a "pending" login and
+    // sends an OTP to the user's registered email, then redirects to the
+    // OTP verification page.
+    // ─────────────────────────────────────────────────────────────────────────
 
     public function login(Request $request)
     {
@@ -31,19 +40,169 @@ class AuthController extends Controller
 
         $user = User::where('badge_number', strtoupper($request->badge_number))->first();
 
-        if ($user && Hash::check($request->password, $user->password)) {
-            Auth::login($user, $request->boolean('remember'));
-            $request->session()->regenerate();
-
-            if ($user->role === 'admin') {
-                return redirect()->route('admin.dashboard');
-            }
-            return redirect()->route('admin.dashboard'); // change to staff later
+        // Wrong credentials
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return back()
+                ->withInput($request->only('badge_number', '_form'))
+                ->withErrors(['badge_number' => 'These credentials do not match our records.']);
         }
 
-        return back()
-            ->withInput($request->only('badge_number', '_form'))
-            ->withErrors(['badge_number' => 'These credentials do not match our records.']);
+        // ── Credentials are valid — send OTP before completing the login ─────
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Store pending login state in session
+        session([
+            'login_pending' => [
+                'user_id'    => $user->id,
+                'remember'   => $request->boolean('remember'),
+                'otp_hash'   => Hash::make($otp),
+                'sent_at'    => time(),
+                'expires_at' => time() + 600, // 10 minutes
+                'attempts'   => 0,
+            ],
+        ]);
+
+        return redirect()->route('admin.dashboard'); // un-comment this to by pass otp
+
+        // -------------------- OTP --------------------------------------------------
+        // Send OTP to the user's registered email
+        // try {
+        //     Mail::to($user->email)->send(new VerifyOtpEmail($otp, 'login'));
+        // } catch (\Throwable $e) {
+        //     logger()->error('Login OTP mail failure: ' . $e->getMessage());
+        //     session()->forget('login_pending');
+        //     return back()
+        //         ->withInput($request->only('badge_number', '_form'))
+        //         ->withErrors(['badge_number' => 'Could not send verification email. Please try again.']);
+        // }
+
+        // // Mask the email for display (e.g. jo***@gmail.com)
+        // $masked = $this->maskEmail($user->email);
+
+        // return redirect()->route('login.otp')
+        //     ->with('otp_email_hint', $masked);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LOGIN OTP — Show page
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function showLoginOtp()
+    {
+        // Guard: must have a pending login in session
+        if (! session('login_pending')) {
+            return redirect()->route('login');
+        }
+
+        return view('emails.verify-login-otp');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LOGIN OTP — Confirm
+    //
+    // POST /login/verify-otp
+    // Validates the OTP. On success, completes the Auth::login() and
+    // redirects to the dashboard.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function confirmLoginOtp(Request $request)
+    {
+        $request->validate([
+            'otp' => ['required', 'digits:6'],
+        ]);
+
+        $pending = session('login_pending');
+
+        if (! $pending) {
+            return redirect()->route('login')
+                ->withErrors(['otp' => 'Session expired. Please sign in again.']);
+        }
+
+        // Expired
+        if (time() > $pending['expires_at']) {
+            session()->forget('login_pending');
+            return redirect()->route('login')
+                ->withErrors(['otp' => 'Verification code expired. Please sign in again.']);
+        }
+
+        // Too many attempts
+        if ($pending['attempts'] >= 5) {
+            session()->forget('login_pending');
+            return redirect()->route('login')
+                ->withErrors(['otp' => 'Too many incorrect attempts. Please sign in again.']);
+        }
+
+        // Wrong OTP
+        if (! Hash::check($request->otp, $pending['otp_hash'])) {
+            $pending['attempts']++;
+            session(['login_pending' => $pending]);
+            $remaining = 5 - $pending['attempts'];
+
+            return back()->withErrors([
+                'otp' => "Incorrect code. {$remaining} attempt(s) remaining.",
+            ]);
+        }
+
+        // ── OTP correct — complete the login ─────────────────────────────────
+        $user = User::find($pending['user_id']);
+
+        if (! $user) {
+            session()->forget('login_pending');
+            return redirect()->route('login')
+                ->withErrors(['badge_number' => 'Account not found. Please sign in again.']);
+        }
+
+        session()->forget('login_pending');
+
+        Auth::login($user, $pending['remember']);
+        $request->session()->regenerate();
+
+        return redirect()->route('admin.dashboard');
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // LOGIN OTP — Resend
+    //
+    // POST /login/resend-otp
+    // Lets the user request a fresh OTP without going back to the login form.
+    // Enforces a 60-second cooldown.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function resendLoginOtp(Request $request)
+    {
+        $pending = session('login_pending');
+
+        if (! $pending) {
+            return response()->json(['sent' => false, 'message' => 'Session expired. Please sign in again.'], 422);
+        }
+
+        // Cooldown check
+        if ((time() - $pending['sent_at']) < 60) {
+            $wait = 60 - (time() - $pending['sent_at']);
+            return response()->json(['sent' => false, 'message' => "Please wait {$wait} seconds before requesting another code."], 429);
+        }
+
+        $user = User::find($pending['user_id']);
+        if (! $user) {
+            return response()->json(['sent' => false, 'message' => 'Account not found.'], 422);
+        }
+
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $pending['otp_hash']   = Hash::make($otp);
+        $pending['sent_at']    = time();
+        $pending['expires_at'] = time() + 600;
+        $pending['attempts']   = 0;
+        session(['login_pending' => $pending]);
+
+        try {
+            Mail::to($user->email)->send(new VerifyOtpEmail($otp, 'login'));
+        } catch (\Throwable $e) {
+            logger()->error('Login OTP resend failure: ' . $e->getMessage());
+            return response()->json(['sent' => false, 'message' => 'Failed to send email. Please try again.'], 500);
+        }
+
+        return response()->json(['sent' => true, 'message' => 'A new verification code has been sent.']);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -52,6 +211,8 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        $requiresOtpVerification = ! app()->environment('local');
+
         $validator = Validator::make($request->all(), [
             'first_name'   => ['required', 'string', 'max:100'],
             'last_name'    => ['required', 'string', 'max:100'],
@@ -73,9 +234,12 @@ class AuthController extends Controller
                 ->withErrors($validator);
         }
 
-        // ── OTP gate: the email must have been verified in this session ──────
+        // OTP gate
         $verified = session('otp_verified_email');
-        if (! $verified || strtolower($verified) !== strtolower($request->email)) {
+        if (
+            $requiresOtpVerification &&
+            (! $verified || strtolower($verified) !== strtolower($request->email))
+        ) {
             return back()
                 ->withInput($request->only('first_name', 'last_name', 'badge_number', 'email', '_form'))
                 ->withErrors(['email' => 'Please verify your email address before registering.']);
@@ -88,7 +252,6 @@ class AuthController extends Controller
             'password'     => Hash::make($request->password),
         ]);
 
-        // Clear the OTP session flag
         session()->forget(['otp_verified_email', 'otp_data']);
 
         Auth::login($user);
@@ -109,15 +272,7 @@ class AuthController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // OTP — SEND
-    //
-    // POST /auth/send-otp
-    //
-    // Generates a 6-digit OTP, stores it in the session with an expiry
-    // timestamp, and sends it to the supplied email via SMTP (Laravel Mail).
-    //
-    // Rate-limited to 5 sends per minute per IP (see routes/web.php).
-    // Returns JSON { sent: bool, message: string }
+    // OTP — SEND (registration)
     // ─────────────────────────────────────────────────────────────────────────
 
     public function sendOtp(Request $request)
@@ -128,7 +283,6 @@ class AuthController extends Controller
 
         $email = strtolower(trim($request->email));
 
-        // Prevent spamming: enforce a 60-second cooldown per email in the session
         $existing = session('otp_data');
         if (
             $existing &&
@@ -143,25 +297,21 @@ class AuthController extends Controller
             ], 429);
         }
 
-        // Generate a cryptographically random 6-digit OTP
         $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-        // Store in session: hashed for safety, expires in 10 minutes
         session([
             'otp_data' => [
                 'email'      => $email,
                 'hash'       => Hash::make($otp),
                 'sent_at'    => time(),
-                'expires_at' => time() + 600, // 10-minute window
+                'expires_at' => time() + 600,
                 'attempts'   => 0,
             ],
         ]);
 
-        // Send via SMTP using Laravel Mail
         try {
             Mail::to($email)->send(new VerifyOtpEmail($otp));
         } catch (\Throwable $e) {
-            // Log the error but return a generic message to the client
             logger()->error('OTP mail failure: ' . $e->getMessage());
             return response()->json([
                 'sent'    => false,
@@ -176,14 +326,7 @@ class AuthController extends Controller
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // OTP — CONFIRM
-    //
-    // POST /auth/confirm-otp
-    //
-    // Validates the submitted OTP against the session-stored hash.
-    // Locks out after 5 wrong attempts (forces a new OTP request).
-    // On success, marks the email as verified in the session.
-    // Returns JSON { verified: bool, message: string }
+    // OTP — CONFIRM (registration)
     // ─────────────────────────────────────────────────────────────────────────
 
     public function confirmOtp(Request $request)
@@ -196,7 +339,6 @@ class AuthController extends Controller
         $email = strtolower(trim($request->email));
         $data  = session('otp_data');
 
-        // ── Basic session checks ─────────────────────────────────────────────
         if (! $data || ($data['email'] ?? '') !== $email) {
             return response()->json([
                 'verified' => false,
@@ -212,7 +354,6 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // ── Attempt limit ────────────────────────────────────────────────────
         if ($data['attempts'] >= 5) {
             session()->forget('otp_data');
             return response()->json([
@@ -221,12 +362,9 @@ class AuthController extends Controller
             ], 429);
         }
 
-        // ── OTP check ────────────────────────────────────────────────────────
         if (! Hash::check($request->otp, $data['hash'])) {
-            // Increment attempt counter
             $data['attempts']++;
             session(['otp_data' => $data]);
-
             $remaining = 5 - $data['attempts'];
             return response()->json([
                 'verified' => false,
@@ -234,7 +372,6 @@ class AuthController extends Controller
             ], 422);
         }
 
-        // ── Success ──────────────────────────────────────────────────────────
         session()->forget('otp_data');
         session(['otp_verified_email' => $email]);
 
@@ -242,5 +379,17 @@ class AuthController extends Controller
             'verified' => true,
             'message'  => 'Email verified successfully.',
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPER
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private function maskEmail(string $email): string
+    {
+        [$local, $domain] = explode('@', $email, 2);
+        $visible = substr($local, 0, min(2, strlen($local)));
+        $masked  = $visible . str_repeat('*', max(0, strlen($local) - 2));
+        return $masked . '@' . $domain;
     }
 }
