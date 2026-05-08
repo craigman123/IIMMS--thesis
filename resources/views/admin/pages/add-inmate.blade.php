@@ -149,18 +149,10 @@
                     </div>
 
                     <div class="ai-form-row">
-
-                        {{-- ══ ASSIGNED CELL — modal picker ══
-                             Clicking the trigger button opens #ai-cell-modal.
-                             The modal contains a live search input and a results list.
-                             On selection the cell_id is written to the hidden #ai-cell input
-                             and the confirmation badge is updated.
-                             The inline dropdown and its associated CSS classes have been removed.
-                        --}}
                         <div class="ai-form-group" id="ai-cell-search-wrap">
                             <label>Assigned Cell <span class="ai-optional-tag">(optional)</span></label>
 
-                            {{-- Trigger button — shows current selection or a placeholder --}}
+                            {{-- Trigger button --}}
                             <button type="button"
                                     id="ai-cell-trigger"
                                     class="ai-cell-trigger"
@@ -179,22 +171,7 @@
                                 </svg>
                             </button>
 
-                            {{-- Clear button — appears after a cell is chosen --}}
-                            <button type="button"
-                                    id="ai-cell-clear"
-                                    class="ai-cell-clear-btn"
-                                    title="Clear selection"
-                                    style="display:none"
-                                    onclick="AiClearCellSelection()">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                     stroke-width="2.5" width="11" height="11" aria-hidden="true">
-                                    <line x1="18" y1="6" x2="6" y2="18"/>
-                                    <line x1="6" y1="6" x2="18" y2="18"/>
-                                </svg>
-                                Clear
-                            </button>
-
-                            {{-- Confirmation badge shown after a cell is selected --}}
+                            {{-- Confirmation badge with inline ✕ clear --}}
                             <div id="ai-cell-selected-badge"
                                  class="ai-cell-selected-badge"
                                  style="display:none"
@@ -204,6 +181,18 @@
                                     <path d="M20 6L9 17l-5-5"/>
                                 </svg>
                                 <span id="ai-cell-selected-text"></span>
+                                <button type="button"
+                                        id="ai-cell-clear"
+                                        class="ai-cell-badge-clear"
+                                        title="Clear selection"
+                                        onclick="AiClearCellSelection()"
+                                        aria-label="Clear cell selection">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2.5" width="10" height="10" aria-hidden="true">
+                                        <line x1="18" y1="6" x2="6" y2="18"/>
+                                        <line x1="6" y1="6" x2="18" y2="18"/>
+                                    </svg>
+                                </button>
                             </div>
 
                             {{-- Optional hint --}}

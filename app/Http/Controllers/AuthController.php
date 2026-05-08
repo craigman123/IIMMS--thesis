@@ -62,7 +62,11 @@ class AuthController extends Controller
             ],
         ]);
 
-        return redirect()->route('admin.dashboard'); // un-comment this to by pass otp
+        // TEMP BYPASS: log in directly without OTP
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        return redirect()->route('admin.dashboard'); // remove these 3 lines when re-enabling OTP
 
         // -------------------- OTP --------------------------------------------------
         // Send OTP to the user's registered email

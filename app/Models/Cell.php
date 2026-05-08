@@ -41,7 +41,8 @@ class Cell extends Model
     public static function nextBlock(): string
     {
         $last = static::withTrashed()
-            ->orderByRaw("block DESC")
+            ->where('block_number', '!=', 0)
+            ->orderByRaw("LENGTH(block) DESC, block DESC")
             ->value('block');
 
         if (! $last) return 'A';

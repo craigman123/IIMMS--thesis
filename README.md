@@ -1,6 +1,6 @@
-# Laravel + Neon (PostgreSQL) Setup Guide
+# Laravel + Supabase (PostgreSQL) Setup Guide
 
-> Quick reference for running this Laravel project with Neon (cloud PostgreSQL) on Windows.
+> Quick reference for running this Laravel project with Supabase (cloud PostgreSQL) on Windows.
 
 ---
 
@@ -9,17 +9,17 @@
 - PHP >= 8.x
 - Laragon 8.6.x
 - Composer
-- Neon Account
+- Supabase Account
 - Node.js
 
 ---
 
-## 1. Neon Setup
+## 1. Supabase Setup
 
-1. Go to [neon.tech](https://neon.tech) and log in
-2. Create a new **Project**
-3. Create a new **Database**
-4. Copy your connection string from the Neon dashboard
+1. Go to [supabase.com](https://supabase.com) and log in
+2. Click **New Project** and fill in the project name and database password
+3. Wait for the project to finish provisioning (~1 minute)
+4. Go to **Project Settings → Database** to find your connection details
 
 ---
 
@@ -40,25 +40,26 @@ php artisan key:generate
 
 ## 3. Configure `.env`
 
-Paste your Neon credentials (found in your Neon dashboard under **Connection Details**):
+In your Supabase dashboard go to **Project Settings → Database → Connection parameters** and copy the values into your `.env`:
 
 ```env
 DB_CONNECTION=pgsql
-DB_HOST=your-neon-host.neon.tech
+DB_HOST=db.<your-project-ref>.supabase.co
 DB_PORT=5432
-DB_DATABASE=your_database_name
-DB_USERNAME=your_username
-DB_PASSWORD=your_neon_password
+DB_DATABASE=postgres
+DB_USERNAME=postgres
+DB_PASSWORD=your_supabase_password
 DB_SSLMODE=require
 ```
 
-> **Note:** Neon requires SSL. Make sure `DB_SSLMODE=require` is set.
+> **Note:** Supabase requires SSL. Make sure `DB_SSLMODE=require` is set.  
+> Your project ref is the string in your Supabase project URL: `https://supabase.com/dashboard/project/<ref>`
 
 ---
 
 ## 4. Enable PostgreSQL PHP Driver
 
-In `php.ini`, uncomment:
+In `php.ini`, uncomment the following lines:
 
 ```ini
 extension=pdo_pgsql
@@ -72,7 +73,13 @@ Then restart Apache or your terminal.
 ## 5. Run Migrations & Start Server
 
 ```bash
+# Run database migrations
 php artisan migrate
+
+# Link storage for file uploads (mugshots, etc.)
+php artisan storage:link
+
+# Start the dev server
 php artisan serve
 ```
 
@@ -82,7 +89,9 @@ Visit: `http://127.0.0.1:8000`
 
 ## Viewing the Database
 
-**Neon Dashboard:** Go to your project → **Tables** to browse data directly in the browser.
+**Supabase Table Editor:** Go to your project → **Table Editor** to browse and edit data directly in the browser.
+
+**Supabase SQL Editor:** Go to **SQL Editor** to run raw queries against your database.
 
 **Tinker:**
 ```bash
@@ -92,14 +101,28 @@ php artisan tinker
 
 ---
 
+## Storage (File Uploads)
+
+This project stores uploaded files (e.g. mugshots) using Laravel's public disk. After running `php artisan storage:link`, uploaded files are accessible at:
+
+```
+http://127.0.0.1:8000/storage/<path>
+```
+
+If mugshots or other uploads aren't displaying, make sure you've run `storage:link`. You only need to do this once.
+
+---
+
 ## Common Errors
 
 | Error | Fix |
 |---|---|
-| `could not find driver` | Enable `pdo_pgsql` in `php.ini` |
-| `connection refused` | Check your Neon host and credentials in `.env` |
+| `could not find driver` | Enable `pdo_pgsql` in `php.ini` and restart |
+| `connection refused` | Check your Supabase host and credentials in `.env` |
 | `SSL required` | Add `DB_SSLMODE=require` to `.env` |
-| `migration fails` | Confirm database exists and `.env` credentials are correct |
+| `migration fails` | Confirm the project is fully provisioned and `.env` credentials are correct |
+| `No such file or directory (storage)` | Run `php artisan storage:link` |
+| `password authentication failed` | Re-copy your password from Supabase — it's shown only once on project creation; reset it under **Project Settings → Database** if needed |
 
 ---
 
@@ -107,8 +130,9 @@ php artisan tinker
 
 Before running the project, confirm:
 
-- [ ] Neon project and database are created
-- [ ] `.env` is configured with Neon credentials
+- [ ] Supabase project is created and fully provisioned
+- [ ] `.env` is configured with Supabase connection parameters
 - [ ] `DB_SSLMODE=require` is set
-- [ ] PHP PostgreSQL driver is enabled
+- [ ] PHP PostgreSQL driver is enabled in `php.ini`
+- [ ] `php artisan storage:link` has been run
 - [ ] `php artisan serve` is running

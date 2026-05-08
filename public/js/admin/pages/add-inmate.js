@@ -12,7 +12,7 @@ function initAddInmatePage() {
     // NOTE: 'ai-cell' is a hidden input — it is validated separately in validateStep()
     // via a custom branch so the error appears on the visible search input instead.
     const STEP_REQUIRED = {
-        1: ['ai-lastName', 'ai-firstName', 'ai-status', 'ai-detentionType', 'ai-admissionDate', 'ai-commitOrder'],
+        1: ['ai-lastName', 'ai-firstName', 'ai-status', 'ai-detentionType', 'ai-admissionDate', 'ai-secLvl', 'ai-commitOrder'],
         2: ['ai-dob', 'ai-sex', 'ai-homeAddress'],
         // Step 3 has no classic required inputs — it requires at least 1 saved crime (checked separately)
     };
@@ -23,6 +23,7 @@ function initAddInmatePage() {
         'ai-status':        'Status',
         'ai-detentionType': 'Detention Type',
         'ai-admissionDate': 'Admission Date',
+        'ai-secLvl':        'Security Level',
         'ai-commitOrder':   'Commitment Order No.',
         'ai-dob':           'Date of Birth',
         'ai-sex':           'Sex',
@@ -183,7 +184,6 @@ function initAddInmatePage() {
         // Update confirmation badge
         if (cellSelectedText)  cellSelectedText.textContent = `${cell.cell_id} · ${cell.type || '—'} · ${cell.occupancy}/${cell.capacity}`;
         if (cellSelectedBadge) cellSelectedBadge.style.display = 'flex';
-        if (cellClearBtn)      cellClearBtn.style.display = 'inline-flex';
 
         // Clear any lingering validation error
         const wrap = document.getElementById('ai-cell-search-wrap');
@@ -270,7 +270,6 @@ function initAddInmatePage() {
     window.AiClearCellSelection = function () {
         if (cellHiddenInput)   cellHiddenInput.value = '';
         if (cellSelectedBadge) cellSelectedBadge.style.display = 'none';
-        if (cellClearBtn)      cellClearBtn.style.display = 'none';
         if (cellTriggerText)   cellTriggerText.textContent = 'Select a cell…';
         if (cellTrigger)       cellTrigger.classList.remove('ai-cell-trigger--selected');
     };
@@ -282,6 +281,17 @@ function initAddInmatePage() {
         if (!validateStep(3)) return;
 
         const formData = new FormData(this);
+
+        // ── Sanitize cell_id ─────────────────────────────────────────
+        // The hidden #ai-cell input can contain the string "undefined" if
+        // cell.id was undefined when commitCell() ran (API shape mismatch),
+        // or an empty string when no cell was chosen. Either way, delete it
+        // so the server falls back to the Holding Cell automatically.
+        const rawCellId = formData.get('cell_id');
+        if (!rawCellId || rawCellId === 'undefined' || rawCellId.trim() === '') {
+            formData.delete('cell_id');
+        }
+        // ─────────────────────────────────────────────────────────────
 
         formData.delete('crimes');
         crimes.forEach((c, idx) => {
@@ -331,8 +341,8 @@ function initAddInmatePage() {
                 AiNextStep(1);
                 ShowPage('inmates');
             } else {
-                console.error('Validation errors:', data.errors);
-                alert('Please check the form for errors:\n' + Object.values(data.errors || {}).flat().join('\n'));
+                console.error('Validation :', data.errors);
+                alert('Please check the form errors:\n' + Object.values(data.errors || {}).flat().join('\n'));
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Inmate Record'; }
             }
         })

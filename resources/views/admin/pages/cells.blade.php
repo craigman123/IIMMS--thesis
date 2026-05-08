@@ -3,10 +3,9 @@
 <div class="page" id="page-cells">
     <div class="page-header">
         <h1>Cell <span class="gold">Assignment</span></h1>
-        <p>Monitor occupancy, status, and block configuration across all detention cells.</p>
+        <p>Review every block horizontally, inspect inmate placement, and manage cells by block.</p>
     </div>
 
-    {{-- ── Stats ── --}}
     <div class="stats-grid" style="margin-bottom: 24px;">
         <div class="stat-card" data-color="gold">
             <div class="stat-icon">
@@ -54,13 +53,13 @@
         </div>
     </div>
 
-    {{-- ── Controls ── --}}
     <div class="panel-card" style="margin-bottom: 20px;">
         <div class="panel-card-header">
-            <h3>Cell Blocks</h3>
+            <div>
+                <h3>Block Board</h3>
+                <div class="panel-card-meta">Blocks are sorted left to right. Each block can be managed as one group.</div>
+            </div>
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-
-                {{-- Filter: Status --}}
                 <select id="cell-filter-status" class="cell-select">
                     <option value="">All Statuses</option>
                     <option value="available">Available</option>
@@ -69,16 +68,15 @@
                     <option value="condemned">Condemned</option>
                 </select>
 
-                {{-- Filter: Type --}}
                 <select id="cell-filter-type" class="cell-select">
                     <option value="">All Types</option>
                     <option value="Luxury">Luxury</option>
                     <option value="Standard">Standard</option>
                     <option value="Dormitory">Dormitory</option>
                     <option value="Solitary">Solitary</option>
+                    <option value="Holding Cell">Holding Cell</option>
                 </select>
 
-                {{-- Add Cell --}}
                 <button class="btn-gold" onclick="ShowPage('add-cell')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -88,11 +86,8 @@
             </div>
         </div>
 
-        {{-- ── Cell Grid ── --}}
         <div style="padding: 20px;">
-            <div class="cell-grid" id="cellGrid">
-                {{-- Populated by JS --}}
-            </div>
+            <div class="cell-blocks-board" id="cellGrid"></div>
             <div id="cell-empty" style="display:none; text-align:center; padding:40px; color:var(--muted); font-size:13px;">
                 No cells found. Try adjusting the filters or add a new block.
             </div>
@@ -100,12 +95,9 @@
     </div>
 </div>
 
-{{-- ── Cell Detail Drawer Modal ── --}}
 <div class="cell-drawer-overlay" id="cellDrawerOverlay" onclick="closeCellDrawer()"></div>
 
 <div class="cell-drawer" id="cellDrawer">
-
-    {{-- Drawer Header --}}
     <div class="cell-drawer-header">
         <div class="cell-drawer-title-group">
             <span class="cell-drawer-id" id="drawerCellId">—</span>
@@ -118,7 +110,6 @@
         </button>
     </div>
 
-    {{-- Meta Info Grid --}}
     <div class="cell-drawer-meta">
         <div class="cell-meta-item">
             <span class="cell-meta-label">Type</span>
@@ -138,7 +129,6 @@
         </div>
     </div>
 
-    {{-- Occupancy Bar --}}
     <div class="cell-drawer-section">
         <div class="cell-drawer-section-label">Occupancy</div>
         <div class="cell-occ-bar-track">
@@ -150,117 +140,202 @@
         </div>
     </div>
 
-    {{-- Inmates List --}}
     <div class="cell-drawer-section" style="flex:1; display:flex; flex-direction:column; min-height:0;">
         <div class="cell-drawer-section-label" style="display:flex; align-items:center; justify-content:space-between;">
             <span>Assigned Inmates</span>
             <span class="cell-inmate-count" id="drawerInmateCount">0</span>
         </div>
-
-        <div class="cell-inmate-list" id="drawerInmateList">
-            {{-- Populated by JS --}}
-        </div>
+        <div class="cell-inmate-list" id="drawerInmateList"></div>
     </div>
 
-    {{-- Drawer Actions --}}
     <div class="cell-drawer-actions">
-        <button class="btn-gold" style="flex:1;" onclick="editCellFromDrawer()">
+        <button class="btn-gold" style="flex:1;" id="cellDrawerEditBtn" onclick="editCellFromDrawer()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
             Edit Cell
         </button>
-        <button class="btn-outline-muted" onclick="closeCellDrawer()">
-            Close
-        </button>
+        <button class="btn-outline-muted" onclick="closeCellDrawer()">Close</button>
+    </div>
+    <div class="cell-drawer-note" id="cellDrawerEditNote" style="display:none;">
+        The Holding Cell is system-managed and cannot be edited here.
     </div>
 </div>
 
-{{-- Overlay (clicking outside closes) --}}
-<div class="cell-edit-overlay" id="cellEditOverlay" onclick="handleEditOverlayClick(event)">
-
+<div class="cell-edit-overlay" id="cellEditOverlay" onclick="handleCellOverlayClick(event)">
     <div class="cell-edit-modal" id="cellEditModal" role="dialog" aria-modal="true" aria-labelledby="cellEditModalTitle">
-
-        {{-- Header --}}
         <div class="cell-edit-header">
             <div class="cell-edit-title">
                 <span class="cell-edit-title-main" id="cellEditModalTitle">Edit Cell</span>
                 <span class="cell-edit-title-sub" id="cellEditModalSubtitle">Loading…</span>
             </div>
             <button class="cell-edit-close" onclick="closeCellEditModal()" title="Close" aria-label="Close">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"/>
                     <line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
             </button>
         </div>
 
-        {{-- Body --}}
         <div class="cell-edit-body">
-
-            {{-- Capacity-below-occupancy warning --}}
-            <div class="cell-edit-warning" id="cellEditCapacityWarn">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <div class="cell-edit-warning" id="cellEditWarning">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                     <line x1="12" y1="9" x2="12" y2="13"/>
                     <line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
-                <span id="cellEditCapacityWarnText">Capacity cannot be lower than current occupancy.</span>
+                <span id="cellEditWarningText">Capacity cannot be lower than current occupancy.</span>
             </div>
 
-            {{-- Type --}}
-            <div class="cell-edit-field" id="fieldType">
-                <label class="cell-edit-label" for="editCellType">Cell Type</label>
-                <select class="cell-edit-select" id="editCellType" name="type">
+            <div class="cell-edit-field" id="cellFieldType">
+                <label class="cell-edit-label" for="cellEditType">Cell Type</label>
+                <select class="cell-edit-select" id="cellEditType" name="type">
                     <option value="Luxury">Luxury</option>
                     <option value="Standard">Standard</option>
                     <option value="Dormitory">Dormitory</option>
                     <option value="Solitary">Solitary</option>
                 </select>
-                <span class="cell-edit-error" id="errorType">Please select a valid cell type.</span>
+                <span class="cell-edit-error" id="cellErrorType">Please select a valid cell type.</span>
             </div>
 
-            {{-- Capacity --}}
-            <div class="cell-edit-field" id="fieldCapacity">
-                <label class="cell-edit-label" for="editCellCapacity">Capacity</label>
-                <input class="cell-edit-input" type="number" id="editCellCapacity"
-                       name="capacity" min="1" max="50" placeholder="e.g. 4">
-                <span class="cell-edit-hint">Maximum 50 inmates per cell.</span>
-                <span class="cell-edit-error" id="errorCapacity">Enter a number between 1 and 50.</span>
+            <div class="cell-edit-field" id="cellFieldCapacity">
+                <label class="cell-edit-label" for="cellEditCapacity">Capacity</label>
+                <input class="cell-edit-input" type="number" id="cellEditCapacity" name="capacity" min="1" max="50" placeholder="e.g. 4">
+                <span class="cell-edit-hint">Must remain at or above current occupancy.</span>
+                <span class="cell-edit-error" id="cellErrorCapacity">Enter a number between 1 and 50.</span>
             </div>
 
-            {{-- Status --}}
-            <div class="cell-edit-field" id="fieldStatus">
-                <label class="cell-edit-label" for="editCellStatus">Status</label>
-                <select class="cell-edit-select" id="editCellStatus" name="status">
+            <div class="cell-edit-field" id="cellFieldStatus">
+                <label class="cell-edit-label" for="cellEditStatus">Status</label>
+                <select class="cell-edit-select" id="cellEditStatus" name="status">
                     <option value="available">Available</option>
                     <option value="full">Full</option>
                     <option value="maintenance">Maintenance</option>
                     <option value="condemned">Condemned</option>
                 </select>
-                <span class="cell-edit-error" id="errorStatus">Please select a valid status.</span>
+                <span class="cell-edit-error" id="cellErrorStatus">Please select a valid status.</span>
             </div>
-
         </div>
 
-        {{-- Footer --}}
         <div class="cell-edit-footer">
             <button class="btn-gold" style="flex:1;" id="cellEditSaveBtn" onclick="submitCellEdit()">
                 <span class="btn-label" style="display:flex;align-items:center;gap:6px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
                         <polyline points="17 21 17 13 7 13 7 21"/>
                         <polyline points="7 3 7 8 15 8"/>
                     </svg>
-                    Save Changes
+                    Save Cell
                 </span>
             </button>
             <button class="btn-outline-muted" onclick="closeCellEditModal()">Cancel</button>
         </div>
+    </div>
+</div>
 
+<div class="cell-edit-overlay" id="blockEditOverlay" onclick="handleBlockOverlayClick(event)">
+    <div class="cell-edit-modal" id="blockEditModal" role="dialog" aria-modal="true" aria-labelledby="blockEditModalTitle">
+        <div class="cell-edit-header">
+            <div class="cell-edit-title">
+                <span class="cell-edit-title-main" id="blockEditModalTitle">Manage Block</span>
+                <span class="cell-edit-title-sub" id="blockEditModalSubtitle">Loading…</span>
+            </div>
+            <button class="cell-edit-close" onclick="closeBlockEditModal()" title="Close" aria-label="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="cell-edit-body">
+            <div class="cell-edit-warning" id="blockEditWarning">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span id="blockEditWarningText">Capacity cannot be lower than the most occupied cell in this block.</span>
+            </div>
+
+            <div class="cell-edit-field" id="blockFieldType">
+                <label class="cell-edit-label" for="blockEditType">Cell Type</label>
+                <select class="cell-edit-select" id="blockEditType" name="type">
+                    <option value="Luxury">Luxury</option>
+                    <option value="Standard">Standard</option>
+                    <option value="Dormitory">Dormitory</option>
+                    <option value="Solitary">Solitary</option>
+                </select>
+                <span class="cell-edit-error" id="blockErrorType">Please select a valid cell type.</span>
+            </div>
+
+            <div class="cell-edit-field" id="blockFieldCapacity">
+                <label class="cell-edit-label" for="blockEditCapacity">Capacity Per Cell</label>
+                <input class="cell-edit-input" type="number" id="blockEditCapacity" name="capacity" min="1" max="50" placeholder="e.g. 4">
+                <span class="cell-edit-hint">Applies to every cell in this block.</span>
+                <span class="cell-edit-error" id="blockErrorCapacity">Enter a number between 1 and 50.</span>
+            </div>
+
+            <div class="cell-edit-field" id="blockFieldAddCount">
+                <label class="cell-edit-label" for="blockEditAddCount">Add More Cells</label>
+                <input class="cell-edit-input" type="number" id="blockEditAddCount" name="add_count" min="0" max="50" value="0" placeholder="0">
+                <span class="cell-edit-hint">Adds new cells to the end of the block.</span>
+            </div>
+
+            <div class="cell-block-modal-meta" id="blockEditMeta"></div>
+        </div>
+
+        <div class="cell-edit-footer">
+            <button class="btn-danger-soft" id="blockDeleteBtn" onclick="deleteBlock()">Delete Block</button>
+            <button class="btn-gold" style="flex:1;" id="blockEditSaveBtn" onclick="submitBlockEdit()">
+                <span class="btn-label" style="display:flex;align-items:center;gap:6px;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                        <polyline points="17 21 17 13 7 13 7 21"/>
+                        <polyline points="7 3 7 8 15 8"/>
+                    </svg>
+                    Save Block
+                </span>
+            </button>
+            <button class="btn-outline-muted" onclick="closeBlockEditModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div class="cell-edit-overlay" id="blockDeleteOverlay" onclick="handleBlockDeleteOverlayClick(event)">
+    <div class="cell-edit-modal" id="blockDeleteModal" role="dialog" aria-modal="true" aria-labelledby="blockDeleteModalTitle">
+        <div class="cell-edit-header">
+            <div class="cell-edit-title">
+                <span class="cell-edit-title-main" id="blockDeleteModalTitle">Delete Block</span>
+                <span class="cell-edit-title-sub" id="blockDeleteModalSubtitle">This action cannot be undone.</span>
+            </div>
+            <button class="cell-edit-close" onclick="closeBlockDeleteModal()" title="Close" aria-label="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="cell-edit-body">
+            <div class="cell-edit-warning visible" id="blockDeleteWarning">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span id="blockDeleteWarningText">Deleting this block removes all empty cells in it.</span>
+            </div>
+
+            <div class="cell-block-delete-copy">
+                <p id="blockDeleteMessage">Are you sure you want to delete this block?</p>
+            </div>
+        </div>
+
+        <div class="cell-edit-footer">
+            <button class="btn-danger-soft" id="blockDeleteConfirmBtn" onclick="confirmDeleteBlock()">Delete Block</button>
+            <button class="btn-outline-muted" style="flex:1;" onclick="closeBlockDeleteModal()">Cancel</button>
+        </div>
     </div>
 </div>

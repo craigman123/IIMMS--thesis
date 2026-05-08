@@ -8,43 +8,46 @@ use App\Models\InmateCrime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use nationalities;
 
 class AdminController extends Controller
 {
     public function adminDashboard()
-    {
+    {   
         $nationalities = config('nationalities');
         $active_inmates = Inmate::where('status', 'active')->count();
-        $inmates = Inmate::with('totalCrimes')->get();
+        $inmates = Inmate::with(['totalCrimes', 'cell'])->get();
+
         $crimes = InmateCrime::all();
         $nextBlock = Cell::nextBlock();
 
         $total_crimes = DB::table('table_inmate_crimes')->count();
         $total_years = DB::table('table_inmate_crimes')->sum('sentence_years');
 
-        $inmates_json = $inmates->map(function($i) {
+        $inmates_json = $inmates->map(function ($i) {
+            $total_years = $i->totalCrimes->sum('sentence_years');
 
-        $total_years = $i->totalCrimes->sum('sentence_years');
+            $release = ($i->admission_date && $total_years > 0)
+                ? Carbon::parse($i->admission_date)->addYears($total_years)->format('M d, Y')
+                : null;
 
-        if ($i->admission_date && $total_years > 0) {
-            $release = Carbon::parse($i->admission_date)->addYears($total_years)->format('M d, Y');
-        } else {
-            $release = '—';
-        }
+            $admitted = $i->admission_date
+                ? Carbon::parse($i->admission_date)->format('M d, Y')
+                : null;
 
-            return [
-                'id'       => $i->id,
-                'name'     => trim($i->last_name . ', ' . $i->first_name . ' ' . $i->middle_name),
-                'cell'     => strtoupper($i->cell) ?? '—',
-                'status'   => $i->status ?? 'unknown',
-                'admitted' => $i->admission_date ? Carbon::parse($i->admission_date)->format('M d, Y') : '—',
-                'release'  => $release,
-                'security'   => $i->security_lvl ?? 'unknown',
+            $row = [
+                'id'   => $i->id,
+                'name' => trim($i->last_name . ', ' . $i->first_name . ' ' . $i->middle_name) ?: null,
+                'cell' => $i->cell?->cell_id ? strtoupper($i->cell->cell_id) : null,
             ];
-        });
 
-        // dd($inmates_json);
+            // Only include optional fields if they have meaningful values
+            if ($i->status)      $row['status']   = $i->status;
+            if ($admitted)       $row['admitted'] = $admitted;
+            if ($release)        $row['release']  = $release;
+            if ($i->security_lvl) $row['security'] = $i->security_lvl;
+
+            return array_filter($row, fn($v) => !is_null($v) && $v !== '');
+        });
 
         return view('admin.admin_dashboard', compact(
             'nationalities',
