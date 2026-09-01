@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────────
 
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CellController;
 use App\Http\Controllers\InmateController;
 use Illuminate\Support\Facades\Route;

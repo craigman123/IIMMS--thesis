@@ -19,6 +19,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('role')->default('staff');
             $table->string('system_access')->default('active');
+            $table->string('status')->default('pending')->after('email');
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

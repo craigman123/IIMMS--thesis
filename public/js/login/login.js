@@ -385,6 +385,18 @@ function showSendCodePrompt(input, statusId, email) {
     hint.appendChild(btn);
 }
 
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 5000);
+}
+
 // ─── Guard register form submission ──────────────────────────────
 // Prevents the form from submitting if the email hasn't been OTP-verified.
 document.addEventListener('DOMContentLoaded', () => {

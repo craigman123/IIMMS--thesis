@@ -430,3 +430,13 @@ input[type="checkbox"] {
     color: var(--text-muted, #8a99b0);
     text-align: center;
 }
+
+.success-box {
+    background: #e6f4ea;
+    border: 1px solid #34a853;
+    color: #1e6b34;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 14px;
+}

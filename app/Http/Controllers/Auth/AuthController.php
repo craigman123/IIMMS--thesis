@@ -1,15 +1,16 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
+use App\Mail\VerifyOtpEmail;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use App\Mail\VerifyOtpEmail;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -62,29 +63,28 @@ class AuthController extends Controller
             ],
         ]);
 
-        // TEMP BYPASS: log in directly without OTP
-        Auth::login($user, $request->boolean('remember'));
-        $request->session()->regenerate();
+        // ── Account must be approved before login proceeds ────────────────────
+        if ($user->status !== 'approved') {
+            return back()
+                ->withInput($request->only('badge_number', '_form'))
+                ->withErrors(['badge_number' => 'Your account is pending administrator approval.']);
+        }
 
-        return redirect()->route('admin.dashboard'); // remove these 3 lines when re-enabling OTP
-
-        // -------------------- OTP --------------------------------------------------
         // Send OTP to the user's registered email
-        // try {
-        //     Mail::to($user->email)->send(new VerifyOtpEmail($otp, 'login'));
-        // } catch (\Throwable $e) {
-        //     logger()->error('Login OTP mail failure: ' . $e->getMessage());
-        //     session()->forget('login_pending');
-        //     return back()
-        //         ->withInput($request->only('badge_number', '_form'))
-        //         ->withErrors(['badge_number' => 'Could not send verification email. Please try again.']);
-        // }
+        try {
+            Mail::to($user->email)->send(new VerifyOtpEmail($otp, 'login'));
+        } catch (\Throwable $e) {
+            logger()->error('Login OTP mail failure: ' . $e->getMessage());
+            session()->forget('login_pending');
+            return back()
+                ->withInput($request->only('badge_number', '_form'))
+                ->withErrors(['badge_number' => 'Could not send verification email. Please try again.']);
+        }
 
-        // // Mask the email for display (e.g. jo***@gmail.com)
-        // $masked = $this->maskEmail($user->email);
+        $masked = $this->maskEmail($user->email);
 
-        // return redirect()->route('login.otp')
-        //     ->with('otp_email_hint', $masked);
+        return redirect()->route('login.otp')
+            ->with('otp_email_hint', $masked);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -254,13 +254,13 @@ class AuthController extends Controller
             'badge_number' => strtoupper($request->badge_number),
             'email'        => $request->email,
             'password'     => Hash::make($request->password),
+            // status defaults to 'pending' via migration
         ]);
 
         session()->forget(['otp_verified_email', 'otp_data']);
 
-        Auth::login($user);
-
-        return redirect('/dashboard');
+        return redirect()->route('login')
+            ->with('status', 'Account created. An administrator must approve your account before you can sign in.');
     }
 
     // ─────────────────────────────────────────────────────────────────────────

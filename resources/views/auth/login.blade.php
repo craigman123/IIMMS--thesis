@@ -6,6 +6,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/login/login.css') }}">
+    <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/x-icon">
 @endpush
 
 @section('content')
@@ -70,10 +71,6 @@
                 </div>
 
                 <div class="divider"><span>Sign in to continue</span></div>
-
-                @if ($errors->any() && old('_form') !== 'register')
-                    <div class="error-box">{{ $errors->first() }}</div>
-                @endif
 
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
@@ -252,10 +249,18 @@
     <script>
         window.requireOtpVerification = @json(!app()->environment('local'));
     </script>
-    <script src="{{ asset('js/login/login.js') }}" defer></script>
     <script>
-        @if ($errors->any() && old('_form') === 'register')
-            switchTab('register');
-        @endif
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (session('status'))
+                showToast(@json(session('status')), 'success');
+            @endif
+
+            @if ($errors->any())
+                showToast(@json($errors->first()), 'error');
+                @if (old('_form') === 'register')
+                    switchTab('register');
+                @endif
+            @endif
+        });
     </script>
 @endpush

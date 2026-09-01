@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Cell;
 use App\Models\Inmate;
 use App\Models\InmateCrime;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,5 +60,23 @@ class AdminController extends Controller
             'total_years',
             'nextBlock',
         ));
+    }
+
+    public function pendingAccounts()
+    {
+        $pending = User::where('status', 'pending')->latest()->get();
+        return view('admin.accounts', compact('pending'));
+    }
+
+    public function approveAccount(User $user)
+    {
+        $user->update(['status' => 'approved']);
+        return back()->with('status', "{$user->name}'s account approved.");
+    }
+
+    public function rejectAccount(User $user)
+    {
+        $user->update(['status' => 'rejected']);
+        return back()->with('status', "{$user->name}'s account rejected.");
     }
 }
