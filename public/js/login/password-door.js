@@ -45,7 +45,6 @@
                         </div>
                     </div>
                 </div>
-                <div class="pw-door"></div>
             </div>
             <div class="pw-door-scene" data-level="weak">
                 <div class="pw-frame"></div>
@@ -57,7 +56,10 @@
             </div>
             <div class="pw-door-scene" data-level="good">
                 <div class="pw-frame"></div>
-                <div class="pw-door"><div class="pw-dial"></div></div>
+                <div class="pw-door">
+                    <div class="pw-safe-display"><span class="pw-safe-display-text">LOCKED</span></div>
+                    <div class="pw-dial"></div>
+                </div>
             </div>
             <div class="pw-door-scene" data-level="strong">
                 <div class="pw-frame"></div>

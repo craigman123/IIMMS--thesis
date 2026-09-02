@@ -7,10 +7,8 @@
 ## Requirements
 
 - PHP >= 8.x
-- Laragon 8.6.x
 - Composer
 - Supabase Account
-- Node.js
 
 ---
 
