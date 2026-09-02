@@ -129,10 +129,6 @@
 
                 <div class="divider"><span>Fill in your details</span></div>
 
-                @if ($errors->any() && old('_form') === 'register')
-                    <div class="error-box">{{ $errors->first() }}</div>
-                @endif
-
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
                     <input type="hidden" name="_form" value="register">
@@ -268,6 +264,11 @@
 @push('scripts')
     <script>
         window.requireOtpVerification = @json(!app()->environment('local'));
+        // The session already knows if this email was OTP-verified (set in
+        // AuthController::confirmOtp and only cleared on successful register
+        // or when the user leaves the flow). Pass it through so a page
+        // reload after a failed validation doesn't force a re-verification.
+        window.otpVerifiedEmail = @json(session('otp_verified_email'));
     </script>
     <script src="{{ asset('js/login/password-door.js') }}" defer></script>
     <script>

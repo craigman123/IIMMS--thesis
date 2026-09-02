@@ -56,6 +56,12 @@ const otpState = {
 
 const requireOtpVerification = window.requireOtpVerification ?? true;
 
+// Hydrate verification state from the server session (survives full page
+// reloads, e.g. after a failed "Create Account" validation error).
+if (window.otpVerifiedEmail) {
+    otpState.verifiedEmail = window.otpVerifiedEmail;
+}
+
 // ─── OTP Modal ────────────────────────────────────────────────────
 // Injects a lightweight modal into the DOM on first use.
 
@@ -380,6 +386,14 @@ function showToast(message, type = 'success') {
 document.addEventListener('DOMContentLoaded', () => {
     const regForm = document.getElementById('register-form') // update to your form's actual id
                  || document.querySelector('form[action*="register"]');
+
+    // If the register email field was repopulated (old('email')) after a
+    // failed validation, re-check it now so an already-verified email shows
+    // the ✓ state immediately instead of the "send code" prompt.
+    const regEmailInput = document.getElementById('reg-email');
+    if (regEmailInput && regEmailInput.value.trim()) {
+        validateEmail(regEmailInput, 'reg-email-status');
+    }
 
     if (regForm) {
         regForm.addEventListener('submit', (e) => {

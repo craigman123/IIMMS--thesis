@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/pages/add-inmate.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/pages/add-cell.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/pages/cells-drawer.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/navbars/topbar.css') }}">
 @endpush
 
 @section('content')

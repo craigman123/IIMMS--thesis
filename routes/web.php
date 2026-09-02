@@ -29,6 +29,13 @@ Route::post ('/login/resend-otp',    [AuthController::class, 'resendLoginOtp'])-
 Route::post('/auth/send-otp',    [AuthController::class, 'sendOtp'])->name('auth.send-otp')->middleware('throttle:5,1');
 Route::post('/auth/confirm-otp', [AuthController::class, 'confirmOtp'])->name('auth.confirm-otp')->middleware('throttle:10,1');
 
+Route::get('/test-mail', function () {
+    Mail::raw('Test email from IIMMS', function ($message) {
+        $message->to('craigfrenan0@gmail.com')->subject('Brevo SMTP Test');
+    });
+    return 'Sent (or check storage/logs/laravel.log if it errored)';
+});
+
 // ── Admin ─────────────────────────────────────────────────────────
 Route::middleware(['auth', 'admin'])->group(function () {
 

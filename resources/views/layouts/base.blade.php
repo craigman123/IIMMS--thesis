@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/toast/toast.css') }}">
     <script src="{{ asset('js/login/login.js') }}"></script>
+    <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/x-icon">
     @stack('styles')
 </head>
 <body>

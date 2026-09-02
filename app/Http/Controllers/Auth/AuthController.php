@@ -287,6 +287,16 @@ class AuthController extends Controller
 
         $email = strtolower(trim($request->email));
 
+        // An email can only be tied to one registration. Reject early so the
+        // user isn't sent (and doesn't have to enter) a code for an address
+        // that will fail the uniqueness check at final submit anyway.
+        if (User::where('email', $email)->exists()) {
+            return response()->json([
+                'sent'    => false,
+                'message' => 'An account with this email already exists. Please sign in instead.',
+            ], 422);
+        }
+
         $existing = session('otp_data');
         if (
             $existing &&
