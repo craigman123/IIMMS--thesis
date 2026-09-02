@@ -2,7 +2,7 @@
 
 <div class="page" id="page-users">
     <div class="page-header">
-        <h1>Staff <span class="gold">Accounts</span></h1>
+        <h1>User <span class="gold">Accounts</span></h1>
         <p>Manage authorized system users.</p>
     </div>
     <div class="panel-card">

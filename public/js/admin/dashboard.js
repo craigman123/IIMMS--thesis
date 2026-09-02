@@ -73,14 +73,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (breadcrumb) {
             const labels = {
                 'overview':   'Overview',
+                'ai-assistant': 'Atom AI Assistant',
                 'inmates':    'All Inmates',
                 'add-inmate': 'Add Inmate',
                 'add-cell':   'Add Cells',
                 'cells':      'Cell Management',
+                'staff-list': 'Staff List',
+                'staff-assignment': 'Staff Assignment',
                 'incidents':  'Incidents',
                 'schedules':  'Schedules',
                 'users':      'Users',
                 'logs':       'Logs',
+                'analytics':  'Analytics',
+                'profile':     'Profile',
                 'contacts':   'Contacts',
             };
             breadcrumb.textContent = labels[pageId] || pageId;

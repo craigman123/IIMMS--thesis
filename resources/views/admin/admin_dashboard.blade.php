@@ -27,16 +27,23 @@
         @include('admin.partials.topbar')
 
         {{-- ── PAGES ── --}}
-        @include('admin.pages.overview')
-        @include('admin.pages.add-inmate')
-        @include('admin.pages.inmates')
-        @include('admin.pages.add-cell')
-        @include('admin.pages.cells')
-        @include('admin.pages.incidents')
-        @include('admin.pages.schedules')
-        @include('admin.pages.users')
-        @include('admin.pages.logs')
-        @include('admin.pages.emergency-contacts')
+        @include('admin.overview.overview')
+        @include('admin.ai.ai_assistant')
+        @include('admin.management.inmate.add-inmate')
+        @include('admin.management.inmate.inmates')
+        @include('admin.management.cell.add-cell')
+        @include('admin.management.cell.cells')
+        @include('admin.management.inmate.incidents')
+        @include('admin.management.inmate.schedules')
+        @include('admin.management.cell.add-cell')
+        @include('admin.management.cell.cells')
+        @include('admin.management.staff.staff-list')
+        @include('admin.management.staff.staff-assignment')
+        @include('admin.accounts.users')
+        @include('admin.system.logs')
+        @include('admin.system.analytics')
+        @include('admin.personal.profile')
+        @include('admin.contacts.emergency-contacts')
 
     </main>
 </div>

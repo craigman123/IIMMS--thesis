@@ -36,6 +36,14 @@
             <span class="nav-label">Overview</span>
         </a>
 
+        <a href="#" class="nav-item" data-page="ai-assistant">
+             <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20"  
+                fill="currentColor" viewBox="0 0 24 24" >
+            <path d="M19.62 12s.08-.1.11-.14c1.34-1.84 1.67-3.57.93-4.86-.78-1.35-2.58-1.87-4.85-1.6C14.91 3.3 13.56 2 12 2S9.09 3.3 8.19 5.4c-2.27-.27-4.07.25-4.85 1.6-.74 1.29-.41 3.01.93 4.86.04.05.08.1.11.14-.04.05-.08.1-.11.14-1.34 1.84-1.67 3.57-.93 4.86.65 1.12 2 1.68 3.74 1.68.35 0 .73-.03 1.11-.08.9 2.1 2.25 3.4 3.81 3.4s2.91-1.3 3.81-3.4c.38.05.76.08 1.11.08 1.74 0 3.09-.55 3.74-1.68.74-1.29.41-3.01-.93-4.86-.04-.05-.08-.1-.11-.14m-2.66-4.67c1.02 0 1.73.25 1.97.67.29.5.03 1.44-.67 2.47-.44-.43-.92-.85-1.44-1.25-.09-.65-.21-1.28-.35-1.86.17-.01.34-.02.5-.02ZM13.5 14.6c-.51.3-1.01.55-1.5.78-.49-.23-.99-.48-1.5-.78-.5-.29-.97-.59-1.43-.91C9.02 13.15 9 12.59 9 12s.03-1.15.07-1.69c.45-.32.93-.62 1.43-.91.51-.3 1.01-.55 1.5-.77.49.23.99.48 1.5.77.5.29.97.59 1.43.91.05.54.07 1.1.07 1.69s-.03 1.15-.07 1.69c-.45.32-.93.62-1.43.91M12 4c.56 0 1.23.65 1.79 1.81-.58.17-1.18.38-1.79.63-.61-.25-1.21-.46-1.79-.63C10.78 4.65 11.45 4 12 4M5.07 8c.24-.42.94-.67 1.97-.67.16 0 .33.01.5.02-.15.59-.27 1.21-.35 1.86-.52.4-1 .82-1.44 1.25-.7-1.03-.96-1.97-.67-2.47Zm0 8c-.29-.5-.03-1.44.67-2.47.44.43.92.85 1.44 1.25.09.65.21 1.28.35 1.86-1.29.09-2.19-.16-2.47-.65ZM12 20c-.56 0-1.23-.65-1.79-1.82.58-.17 1.18-.38 1.79-.63.61.25 1.21.46 1.79.63C13.22 19.34 12.55 20 12 20m6.93-4c-.28.48-1.18.74-2.47.65.15-.59.27-1.21.35-1.86.52-.4 1-.82 1.44-1.25.7 1.03.96 1.97.67 2.47Z"></path><path d="M12 10.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 1 0 0-3"></path>
+            </svg>
+            <span class="nav-label">Atom AI Assistant</span>
+        </a>
+
         <div class="nav-section-label">Inmate Management</div>
 
         <a href="#" class="nav-item" data-page="add-inmate">
@@ -89,6 +97,22 @@
             <span class="nav-label">Cell Assignment</span>
         </a>
 
+        <div class="nav-section-label">Staff Management</div>
+
+            <a href="#" class="nav-item" data-page="staff-list">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" >
+                    <path d="M4.5 11h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5C3.67 3 3 3.67 3 4.5v5c0 .83.67 1.5 1.5 1.5M5 5h4v4H5zm14.5-2h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5M19 9h-4V5h4zM4.5 21h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5m.5-6h4v4H5zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3z"></path>
+                </svg>
+                <span class="nav-label">Staff List</span>
+            </a>
+            <a href="#" class="nav-item" data-page="staff-assignment">
+                <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20"  
+                fill="currentColor" viewBox="0 0 24 24" >
+                <path d="M12 2a2 2 0 1 0 0 4 2 2 0 1 0 0-4m-2 16h4v-5h2V9c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v4h2z"></path><path d="M16 14.3v2.03c2.63.47 4 1.3 4 1.66 0 .51-2.75 2-8 2s-8-1.49-8-2c0-.36 1.37-1.2 4-1.66V14.3c-3.31.52-6 1.72-6 3.7 0 2.75 5.18 4 10 4s10-1.25 10-4c0-1.98-2.69-3.18-6-3.7"></path>
+                </svg>
+                <span class="nav-label">Staff Assignment</span>
+            </a>
+
         <div class="nav-section-label">System</div>
 
         <a href="#" class="nav-item" data-page="users">
@@ -96,7 +120,7 @@
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
             </svg>
-            <span class="nav-label">Staff Accounts</span>
+            <span class="nav-label">Users Accounts</span>
         </a>
 
         <a href="#" class="nav-item" data-page="logs">
@@ -108,6 +132,23 @@
                 <polyline points="10 9 9 9 8 9"/>
             </svg>
             <span class="nav-label">Audit Logs</span>
+        </a>
+        <a href="#" class="nav-item" data-page="analytics">
+            <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20"  
+            fill="currentColor" viewBox="0 0 24 24" >
+            <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10 10-4.49 10-10S17.51 2 12 2m7.93 9H13V4.07c3.61.45 6.48 3.32 6.93 6.93M4 12c0-4.07 3.06-7.44 7-7.93V12c0 .21.06.41.19.58l4.61 6.46c-1.13.61-2.42.96-3.8.96-4.41 0-8-3.59-8-8m13.42 5.87L13.94 13h5.99a7.98 7.98 0 0 1-2.51 4.87"></path>
+            </svg>
+            <span class="nav-label">Analytics</span>
+        </a>
+
+        <div class="nav-section-label">Personal</div>
+
+        <a href="#" class="nav-item" data-page="profile">
+            <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20"  
+            fill="currentColor" viewBox="0 0 24 24" >
+            <path d="M13 9h5v2h-5zm1 4h4v2h-4z"></path><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M4 18V6h16v12z"></path><path d="M9 8a2 2 0 1 0 0 4 2 2 0 1 0 0-4m0 5c-1.66 0-3 1.34-3 3h6c0-1.66-1.34-3-3-3"></path>
+            </svg>
+            <span class="nav-label">Profile Information</span>
         </a>
 
         <div class="nav-section-label">Contacts</div>

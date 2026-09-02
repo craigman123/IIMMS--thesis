@@ -121,6 +121,5 @@
 <script>
     const inmateCount    = {{ count($inmates_json) }};
     const active_inmates = {{ $active_inmates }};
-    const inmates        = @json($inmates_json);
 </script>
 <script src="{{ asset('js/admin/dashboard.js') }}" defer></script>
