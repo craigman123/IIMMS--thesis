@@ -440,3 +440,30 @@ input[type="checkbox"] {
     margin-bottom: 16px;
     font-size: 14px;
 }
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+.pw-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+}
+.pw-toggle-btn:hover { color: #6b7280; }
+.pw-toggle-btn svg { width: 17px; height: 17px; }
+
+/* give the input room so the toggle icon doesn't sit under typed text */
+.input-wrapper input[type="password"],
+.input-wrapper input[type="text"].pw-revealed {
+    padding-right: 2.4rem;
+}

@@ -6,28 +6,6 @@ function switchTab(tab) {
     document.getElementById('tab-register').classList.toggle('active', tab === 'register');
 }
 
-// ─── Password Strength Meter ──────────────────────────────────────
-function checkStrength(val) {
-    const segs  = ['seg1','seg2','seg3','seg4'].map(id => document.getElementById(id));
-    const label = document.getElementById('strength-label');
-
-    let score = 0;
-    if (val.length >= 8)           score++;
-    if (/[A-Z]/.test(val))         score++;
-    if (/[0-9]/.test(val))         score++;
-    if (/[^A-Za-z0-9]/.test(val))  score++;
-
-    const colors = ['#e24b4a', '#e8892a', '#c9a84c', '#22863a'];
-    const labels = ['Weak', 'Fair', 'Good', 'Strong'];
-
-    segs.forEach((s, i) => {
-        s.style.background = i < score ? colors[score - 1] : '#e5e7eb';
-    });
-
-    label.textContent = val.length ? (labels[score - 1] || '') : '';
-    label.style.color = score ? colors[score - 1] : 'var(--text-muted)';
-}
-
 // ─── Email Format Check ───────────────────────────────────────────
 function isValidEmailFormat(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
@@ -425,4 +403,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+});
+
+// ─── Password visibility toggle ───────────────────────────────────
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.pw-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+
+            const isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            input.classList.toggle('pw-revealed', isHidden);
+
+            btn.querySelector('.pw-eye-open').style.display  = isHidden ? 'none' : '';
+            btn.querySelector('.pw-eye-closed').style.display = isHidden ? '' : 'none';
+            btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+        });
+    });
 });

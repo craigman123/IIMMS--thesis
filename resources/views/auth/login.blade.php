@@ -6,6 +6,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/login/login.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/login/password-door.css') }}">
     <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/x-icon">
 @endpush
 
@@ -195,20 +196,39 @@
 
                     <div class="form-group">
                         <label for="reg-password">Password</label>
-                        <div class="input-wrapper">
-                            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                            </svg>
-                            <input type="password" id="reg-password" name="password" required placeholder="Min. 8 characters" autocomplete="new-password" oninput="checkStrength(this.value)">
+                        <div class="password-row">
+                            <div class="password-row-main">
+                                <div class="input-wrapper">
+                                    <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                    </svg>
+                                    <input type="password" id="reg-password" name="password" required placeholder="Min. 8 characters" autocomplete="new-password">
+                                    <button type="button" class="pw-toggle-btn" data-target="reg-password" aria-label="Show password">
+                                        <svg class="pw-eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                                            <circle cx="12" cy="12" r="3"/>
+                                        </svg>
+                                        <svg class="pw-eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+                                            <path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a21.6 21.6 0 015.06-6.06M9.9 4.24A10.94 10.94 0 0112 4c7 0 11 7 11 7a21.6 21.6 0 01-2.16 3.19M14.12 14.12a3 3 0 11-4.24-4.24"/>
+                                            <line x1="1" y1="1" x2="23" y2="23"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="strength-bar">
+                                    <div class="strength-seg" id="seg1"></div>
+                                    <div class="strength-seg" id="seg2"></div>
+                                    <div class="strength-seg" id="seg3"></div>
+                                    <div class="strength-seg" id="seg4"></div>
+                                    <div class="strength-seg" id="seg5"></div>
+                                </div>
+                            </div>
+
+                            <div class="password-row-visual">
+                                <div class="pw-strength-visual" id="pw-strength-visual"></div>
+                                <div class="pw-strength-caption" id="pw-strength-caption"></div>
+                            </div>
                         </div>
-                        <div class="strength-bar">
-                            <div class="strength-seg" id="seg1"></div>
-                            <div class="strength-seg" id="seg2"></div>
-                            <div class="strength-seg" id="seg3"></div>
-                            <div class="strength-seg" id="seg4"></div>
-                        </div>
-                        <div class="strength-label" id="strength-label"></div>
                     </div>
 
                     <div class="form-group">
@@ -239,7 +259,7 @@
         </div>
 
         <div class="card-footer">
-            <p>⚠ Unauthorized access is a criminal offense &nbsp;|&nbsp; © {{ date('Y') }} <span>IIMMS</span>. All rights reserved.</p>
+            <p>⚠ Unauthorized access is a criminal offense &nbsp;|&nbsp; © {{ date('Y') }} <span>SIIIMS</span>. All rights reserved.</p>
         </div>
     </div>
 
@@ -249,6 +269,7 @@
     <script>
         window.requireOtpVerification = @json(!app()->environment('local'));
     </script>
+    <script src="{{ asset('js/login/password-door.js') }}" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             @if (session('status'))
