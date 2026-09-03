@@ -66,6 +66,19 @@
             </div>
             <div class="stat-trend" id="trend-cells">—</div>
         </div>
+        <div class="stat-card" data-color="purple">
+            <div class="stat-icon">
+                <svg  xmlns="http://www.w3.org/2000/svg" width="30" height="30"  
+                fill="currentColor" viewBox="0 0 24 24" >
+                <path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 2v2H4V5zM8 13H4V9h4zm2-4h4v4h-4zm6 0h4v4h-4zM4 19v-4h16v4z"></path>
+                </svg>
+            </div>
+            <div class="stat-info" >
+                <span class="stat-value" id="stat-cell-total">—</span>
+                <span class="stat-label">Total Cells</span>
+            </div>
+            <div class="stat-trend" id="trend-cell-total">—</div>
+        </div>
     </div>
 
     {{-- Two column layout --}}

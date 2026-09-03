@@ -1,0 +1,517 @@
+/* =============================================================
+   REPORT INCIDENT — stacked modal flow
+   Tokens are namespaced (--im-*) so they don't collide with any
+   variables already defined globally. Adjust the values below to
+   match your existing palette if you have one.
+   ============================================================= */
+:root {
+    --im-ink: #0b0a08;
+    --im-panel: #131c33;
+    --im-panel-raised: #0d1f35;
+    --im-border: rgba(233, 211, 146, 0.14);
+    --im-gold: #cda43f;
+    --im-gold-soft: rgba(205, 164, 63, 0.14);
+    --im-text: #f0ece1;
+    --im-muted: #a89d84;
+    --im-sev-low: #5c8a5c;
+    --im-sev-med: #c98a3a;
+    --im-sev-high: #b6432f;
+    --im-sev-critical: #8f2a2a;
+}
+
+/* ---------- flow wrapper / backdrop ---------- */
+.incident-flow {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.incident-flow.is-open {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.incident-flow-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 5, 4, 0.6);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+
+.incident-flow.is-open .incident-flow-backdrop {
+    opacity: 1;
+}
+
+/* ---------- shared modal shell ---------- */
+.incident-modal {
+    position: absolute;
+    top: 50%;
+    left: 6vw;
+    display: flex;
+    flex-direction: column;
+    background: var(--im-panel);
+    border: 1px solid var(--im-border);
+    border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    color: var(--im-text);
+    overflow: hidden;
+}
+
+/* Modal 1 — the inmate picker. Slides up from a hidden state,
+   and is the visible/top card by default. */
+.incident-modal-picker {
+    width: 35vw;
+    height: 80vh;
+    transform: translate(-24px, -50%) scale(0.97);
+    opacity: 0;
+    z-index: 2;
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+}
+
+.incident-flow.is-open .incident-modal-picker {
+    transform: translate(0, -50%) scale(1);
+    opacity: 1;
+}
+
+/* Modal 2 — the report form. Starts tucked behind modal 1, shifted
+   down so its bottom edge peeks out and it reads as a stacked card,
+   then slides out to the right once an inmate is picked. */
+.incident-modal-report {
+    left: 6vw;
+    width: 40vw;
+    transform: translate(-10px, calc(-50% + 34px)) scale(0.96);
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: transform 0.45s cubic-bezier(0.16, 0.8, 0.2, 1), opacity 0.35s ease, left 0.45s cubic-bezier(0.16, 0.8, 0.2, 1), z-index 0s 0.45s;
+}
+
+.pressing-glow {
+    position: relative;
+    border-radius: 10px;
+    isolation: isolate;
+}
+
+/* Keep the row's own text/avatar above everything else we're about
+   to stack on top of it. */
+.pressing-glow > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* The spinning gradient itself — sits 2px outside the row on every
+   side. Left unmasked on purpose; the ::after cover below is what
+   trims it down to a thin ring. */
+.pressing-glow::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: conic-gradient(
+        from 0deg,
+        rgba(205, 164, 63, 0) 0deg,
+        var(--im-gold) 90deg,
+        rgba(205, 164, 63, 0) 180deg,
+        var(--im-gold) 270deg,
+        rgba(205, 164, 63, 0) 360deg
+    );
+    opacity: 0;
+    z-index: 0;
+}
+
+/* Opaque cover matching the row's own background, positioned flush
+   with the row's edges (i.e. 2px inside ::before). This is what
+   turns the gradient into a ring instead of a solid fill — only the
+   2px sliver of ::before that pokes out past this cover is visible. */
+.pressing-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--im-panel);
+    transition: background 0.15s ease;
+    z-index: 1;
+}
+
+.pressing-glow:hover::after,
+.pressing-glow:focus-visible::after {
+    background: var(--im-gold-soft);
+}
+
+/* Fires once when JS adds .is-selecting after a click — a couple of
+   quick spins that fade out, instead of spinning forever on every row. */
+.pressing-glow.is-selecting {
+    pointer-events: none;
+}
+
+.pressing-glow.is-selecting::before {
+    animation: pressing-glow-spin 0.5s linear forwards;
+}
+
+@keyframes pressing-glow-spin {
+    0% { transform: rotate(0deg); opacity: 1; }
+    75% { opacity: 1; }
+    100% { transform: rotate(540deg); opacity: 0; }
+}
+
+.incident-flow.is-open .incident-modal-report {
+    opacity: 1; /* visible peeking out from behind/below modal 1 */
+}
+
+.incident-flow.inmate-selected .incident-modal-report {
+    left: calc(6vw + 35vw + 1.5vw);
+    transform: translate(0, -50%) scale(1);
+    opacity: 1;
+    z-index: 1;
+    pointer-events: auto;
+    transition: transform 0.45s cubic-bezier(0.16, 0.8, 0.2, 1), opacity 0.4s ease, left 0.45s cubic-bezier(0.16, 0.8, 0.2, 1);
+}
+
+.incident-flow.inmate-selected .incident-modal-picker {
+    transform: translate(0, -50%) scale(0.97);
+}
+
+@media (max-width: 900px) {
+    .incident-modal-picker {
+        left: 50%;
+        width: 90vw;
+        height: 78vh;
+        transform: translate(-50%, -50%) scale(0.97);
+    }
+    .incident-modal-report {
+        left: 50%;
+        width: 88vw;
+        height: 74vh;
+        transform: translate(-50%, calc(-50% + 26px)) scale(0.96);
+    }
+    .incident-flow.is-open .incident-modal-picker {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .incident-flow.inmate-selected .incident-modal-report {
+        left: 50%;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    .incident-flow.inmate-selected .incident-modal-picker {
+        transform: translate(-50%, -50%) scale(0.96);
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+
+/* ---------- header ---------- */
+.incident-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--im-border);
+    flex-shrink: 0;
+}
+
+.incident-modal-header h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    flex: 1;
+}
+
+.incident-modal-close,
+.incident-modal-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--im-border);
+    background: transparent;
+    color: var(--im-muted);
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.incident-modal-close:hover,
+.incident-modal-back:hover {
+    border-color: var(--im-gold);
+    color: var(--im-gold);
+}
+
+/* ---------- modal 1: filters + list ---------- */
+.incident-filters {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--im-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.incident-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--im-panel-raised);
+    border: 1px solid var(--im-border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--im-muted);
+}
+
+.incident-search input {
+    border: none;
+    background: transparent;
+    color: var(--im-text);
+    font-size: 0.9rem;
+    width: 100%;
+    outline: none;
+}
+
+.incident-filter-row {
+    display: flex;
+    gap: 8px;
+}
+
+.incident-filter-row select {
+    flex: 1;
+    background: var(--im-panel-raised);
+    border: 1px solid var(--im-border);
+    color: var(--im-text);
+    border-radius: 8px;
+    padding: 7px 8px;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.incident-filter-row select:focus,
+.incident-search input:focus-visible {
+    border-color: var(--im-gold);
+}
+
+.inmate-list {
+    list-style: none;
+    margin: 0;
+    padding: 8px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.inmate-list-empty {
+    padding: 24px 18px;
+    text-align: center;
+    color: var(--im-muted);
+    font-size: 0.88rem;
+}
+
+.inmate-list-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--im-border);
+    background: var(--im-panel);
+    color: var(--im-text);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.inmate-list-item:hover,
+.inmate-list-item:focus-visible {
+    border-color: var(--im-gold);
+}
+
+.inmate-avatar {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--im-panel-raised);
+    border: 1px solid var(--im-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--im-gold);
+}
+
+.inmate-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.inmate-name {
+    font-size: 0.92rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inmate-meta {
+    font-size: 0.78rem;
+    color: var(--im-muted);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.inmate-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--im-sev-low);
+    flex-shrink: 0;
+}
+
+.inmate-status-dot[data-status="Isolation"] { background: var(--im-sev-high); }
+.inmate-status-dot[data-status="Medical"] { background: var(--im-sev-med); }
+.inmate-status-dot[data-status="Release pending"] { background: var(--im-muted); }
+
+/* ---------- modal 2: selected inmate + form ---------- */
+.incident-target {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--im-border);
+    flex-shrink: 0;
+}
+
+.incident-target-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--im-panel-raised);
+    border: 1px solid var(--im-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--im-gold);
+}
+
+.incident-target-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.incident-target-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.incident-target-meta {
+    font-size: 0.8rem;
+    color: var(--im-muted);
+}
+
+.incident-form {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+}
+
+.incident-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.incident-form-split {
+    flex-direction: row;
+    gap: 12px;
+}
+
+.incident-form-split > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.incident-form label {
+    font-size: 0.82rem;
+    color: var(--im-muted);
+}
+
+.incident-form input,
+.incident-form select,
+.incident-form textarea {
+    background: var(--im-panel-raised);
+    border: 1px solid var(--im-border);
+    color: var(--im-text);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 0.9rem;
+    outline: none;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.incident-form input:focus,
+.incident-form select:focus,
+.incident-form textarea:focus {
+    border-color: var(--im-gold);
+}
+
+.incident-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 4px;
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--im-border);
+    color: var(--im-muted);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-ghost:hover {
+    border-color: var(--im-gold);
+    color: var(--im-text);
+}
+
+/* ---------- badges for rows added to the incidents table ---------- */
+.severity-badge,
+.status-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+
+.severity-low { color: var(--im-sev-low); border-color: var(--im-sev-low); background: rgba(92, 138, 92, 0.12); }
+.severity-medium { color: var(--im-sev-med); border-color: var(--im-sev-med); background: rgba(201, 138, 58, 0.12); }
+.severity-high { color: var(--im-sev-high); border-color: var(--im-sev-high); background: rgba(182, 67, 47, 0.12); }
+.severity-critical { color: var(--im-sev-critical); border-color: var(--im-sev-critical); background: rgba(143, 42, 42, 0.16); }
+
+.status-open { color: var(--im-gold); border-color: var(--im-gold); background: var(--im-gold-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+    .incident-modal-picker,
+    .incident-modal-report,
+    .incident-flow-backdrop {
+        transition: none !important;
+    }
+}

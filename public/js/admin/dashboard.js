@@ -122,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             incidents: 3,
             cells:     47,
             capacity:  200,
+            cell_total: 47,
         };
 
         setTimeout(() => {
@@ -129,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             animateCounter('stat-active',    stats.active);
             animateCounter('stat-incidents', stats.incidents);
             animateCounter('stat-cells',     stats.cells);
+            animateCounter('stat-cell-total',  stats.cell_total);
 
             setEl('badge-inmates',   stats.total);
             setEl('badge-incidents', stats.incidents);

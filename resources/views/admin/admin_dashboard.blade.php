@@ -57,6 +57,7 @@
         const inmates = @json($inmates_json);
     </script>
     <script>
+        // ========= USED BY AI ==========
         window.AI_ASSISTANT_CONFIG = {
             chatUrl: "{{ route('ai-assistant.chat') }}",
             modelsUrl: "{{ route('ai-assistant.models.index') }}",

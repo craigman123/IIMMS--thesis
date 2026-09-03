@@ -416,7 +416,7 @@ html, body {
 /* ── STAT CARDS ── */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -445,6 +445,7 @@ html, body {
 .stat-card[data-color="green"]::before { background: var(--green); }
 .stat-card[data-color="red"]::before   { background: var(--red); }
 .stat-card[data-color="blue"]::before  { background: var(--blue); }
+.stat-card[data-color="purple"]::before  { background: var(--purple); }
 
 .stat-card:hover { border-color: var(--navy-border); transform: translateY(-2px); }
 
@@ -462,11 +463,13 @@ html, body {
 .stat-card[data-color="green"] .stat-icon { background: var(--green-dim); }
 .stat-card[data-color="red"]   .stat-icon { background: var(--red-dim);   }
 .stat-card[data-color="blue"]  .stat-icon { background: var(--blue-dim);  }
+.stat-card[data-color="purple"]  .stat-icon { background: var(--purple-dim);  }
 
 .stat-card[data-color="gold"]  .stat-icon svg { stroke: var(--gold);  width: 20px; height: 20px; }
 .stat-card[data-color="green"] .stat-icon svg { stroke: var(--green); width: 20px; height: 20px; }
 .stat-card[data-color="red"]   .stat-icon svg { stroke: var(--red);   width: 20px; height: 20px; }
 .stat-card[data-color="blue"]  .stat-icon svg { stroke: var(--blue);  width: 20px; height: 20px; }
+.stat-card[data-color="purple"]  .stat-icon svg { stroke: var(--purple);  width: 20px; height: 20px; }
 
 .stat-info { flex: 1; }
 
