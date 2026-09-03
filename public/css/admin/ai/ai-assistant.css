@@ -1,0 +1,367 @@
+/* Rebuilt from scratch to match the SIIMMS admin dashboard's dark
+   navy + gold styling. Adjust the CSS variables below if your actual
+   palette differs slightly. */
+
+.ai-drawer {
+    --ai-bg: #0f1729;
+    --ai-panel-bg: #131c33;
+    --ai-border: #232f4a;
+    --ai-gold: #d4af37;
+    --ai-text: #e5e9f2;
+    --ai-text-dim: #8993ab;
+    --ai-user-bubble: #4c3b8c;
+    --ai-assistant-bubble: #1c2740;
+    --ai-send-bg: #3b5bdb;
+    --ai-panel-width: 40vw;
+    /* Kept in sync with the real sidebar width by ai-assistant.js;
+       this value is only the fallback before that JS runs. */
+    --ai-sidebar-width: 260px;
+
+    position: fixed;
+    top: 0;
+    left: var(--ai-sidebar-width);
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    pointer-events: none;
+    color: var(--ai-text);
+}
+
+.ai-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: var(--ai-panel-width);
+    min-width: 360px;
+    max-width: 720px;
+    background: var(--ai-panel-bg);
+    border-left: 1px solid var(--ai-border);
+    box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    pointer-events: auto;
+    transform: translateX(100%);
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.ai-drawer.is-open .ai-panel {
+    transform: translateX(0);
+}
+
+.ai-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--ai-border);
+}
+
+.ai-panel__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ai-panel__icon {
+    color: var(--ai-gold);
+    display: inline-flex;
+}
+
+.ai-panel__title h1 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--ai-text);
+}
+
+.ai-panel__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.ai-model-dropdown {
+    position: relative;
+}
+
+.ai-model-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--ai-bg);
+    border: 1px solid var(--ai-border);
+    color: var(--ai-text);
+    font-size: 0.8rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    cursor: pointer;
+    max-width: 160px;
+}
+
+.ai-model-trigger:hover {
+    border-color: var(--ai-gold);
+}
+
+.ai-model-trigger[aria-expanded="true"] {
+    border-color: var(--ai-gold);
+}
+
+.ai-model-trigger__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ai-model-trigger__chevron {
+    flex-shrink: 0;
+    color: var(--ai-text-dim);
+    transition: transform 0.18s ease;
+}
+
+.ai-model-trigger[aria-expanded="true"] .ai-model-trigger__chevron {
+    transform: rotate(180deg);
+    color: var(--ai-gold);
+}
+
+.ai-model-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 180px;
+    max-height: 240px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    background: var(--ai-panel-bg);
+    border: 1px solid var(--ai-border);
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    z-index: 5;
+}
+
+.ai-model-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.83rem;
+    color: var(--ai-text);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.ai-model-option:hover,
+.ai-model-option:focus-visible {
+    background: var(--ai-bg);
+    outline: none;
+}
+
+.ai-model-option[aria-selected="true"] {
+    color: var(--ai-gold);
+}
+
+.ai-model-option__check {
+    flex-shrink: 0;
+    color: var(--ai-gold);
+    visibility: hidden;
+}
+
+.ai-model-option[aria-selected="true"] .ai-model-option__check {
+    visibility: visible;
+}
+
+.ai-model-menu__empty {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.82rem;
+    color: var(--ai-text-dim);
+}
+
+.ai-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: transparent;
+    color: var(--ai-text-dim);
+    border: 1px solid var(--ai-border);
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.ai-close-btn:hover {
+    color: var(--ai-text);
+    border-color: var(--ai-gold);
+}
+
+.ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ai-msg {
+    display: flex;
+}
+
+.ai-msg--user {
+    justify-content: flex-end;
+}
+
+.ai-msg__bubble {
+    max-width: 80%;
+    padding: 0.65rem 0.9rem;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.ai-msg--assistant .ai-msg__bubble {
+    background: var(--ai-assistant-bubble);
+    color: var(--ai-text);
+    border-bottom-left-radius: 4px;
+}
+
+.ai-msg--user .ai-msg__bubble {
+    background: var(--ai-user-bubble);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+
+.ai-msg--error .ai-msg__bubble {
+    background: #4a1f24;
+    color: #f5b5bb;
+}
+
+.ai-msg__file {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--ai-gold);
+    text-decoration: underline;
+}
+
+.ai-typing {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.2rem 0;
+}
+
+.ai-typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ai-text-dim);
+    animation: ai-typing-bounce 1.2s infinite ease-in-out;
+}
+
+.ai-typing span:nth-child(2) { animation-delay: 0.15s; }
+.ai-typing span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes ai-typing-bounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.ai-panel__footer {
+    border-top: 1px solid var(--ai-border);
+    padding: 0.75rem;
+}
+
+.ai-input-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.ai-input {
+    flex: 1;
+    background: var(--ai-bg);
+    border: 1px solid var(--ai-border);
+    color: var(--ai-text);
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+}
+
+.ai-input:focus {
+    outline: 2px solid var(--ai-gold);
+    outline-offset: 1px;
+}
+
+.ai-send-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: var(--ai-send-bg);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.ai-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ai-send-btn:not(:disabled):hover {
+    filter: brightness(1.1);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* The sidebar's own .active class is reserved for whichever page is
+   actually showing. This is a separate, lighter treatment that only
+   signals "the assistant drawer is open" — a gold outline, not a fill —
+   so it never gets confused with a real selected page, and it's applied
+   entirely by ai-assistant.js rather than the dashboard's own nav logic. */
+.nav-item.ai-nav-open {
+    background: transparent !important;
+    box-shadow: inset 0 0 0 1px var(--ai-gold, #d4af37);
+    border-radius: 8px;
+}
+
+.nav-item.ai-nav-open .nav-label {
+    color: var(--ai-gold, #d4af37);
+}
+
+@media (max-width: 900px) {
+    .ai-drawer {
+        --ai-panel-width: 60vw;
+    }
+}
+
+@media (max-width: 720px) {
+    .ai-drawer {
+        --ai-panel-width: 100vw;
+    }
+
+    .ai-panel {
+        min-width: 0;
+        max-width: 100%;
+    }
+}

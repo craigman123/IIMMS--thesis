@@ -8,6 +8,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CellController;
 use App\Http\Controllers\InmateController;
+use App\Http\Controllers\ArtificialIntelligence\AiAssistantController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -57,5 +58,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::put   ('/admin/blocks/{block}',            [CellController::class, 'updateBlock'])       ->name('admin.blocks.update');
     Route::delete('/admin/blocks/{block}',            [CellController::class, 'destroyBlock'])      ->name('admin.blocks.destroy');
     Route::get('/admin/cells/{id}/inmates',           [CellController::class, 'inmates'])           ->name('admin.cells.inmates');
+
+    Route::get   ('/admin/ai-assistant',              function () { return view('ai-assistant'); })  ->name('ai-assistant');
+    Route::get   ('/admin/ai-assistant/models',       [AiAssistantController::class, 'listModels'])  ->name('ai-assistant.models.index');
+    Route::post  ('/admin/ai-assistant/models',       [AiAssistantController::class, 'setModel'])    ->name('ai-assistant.models.set');
+    Route::post  ('/admin/ai-assistant/chat',         [AiAssistantController::class, 'chat'])        ->name('ai-assistant.chat');
 
 });

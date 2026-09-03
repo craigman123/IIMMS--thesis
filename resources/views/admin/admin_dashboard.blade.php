@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/pages/add-cell.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/pages/cells-drawer.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/navbars/topbar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/ai/ai-assistant.css') }}">
 @endpush
 
 @section('content')
@@ -53,9 +54,18 @@
     <script>
         const inmates = @json($inmates_json);
     </script>
+    <script>
+        window.AI_ASSISTANT_CONFIG = {
+            chatUrl: "{{ route('ai-assistant.chat') }}",
+            modelsUrl: "{{ route('ai-assistant.models.index') }}",
+            setModelUrl: "{{ route('ai-assistant.models.set') }}",
+            csrfToken: "{{ csrf_token() }}",
+        };
+    </script>
     <script src="{{ asset('js/admin/dashboard.js') }}" defer></script>
     <script src="{{ asset('js/admin/pages/inmates.js') }}" defer></script>
     <script src="{{ asset('js/admin/pages/add-inmate.js') }}" defer></script>
     <script src="{{ asset('js/admin/pages/add-cell.js') }}" defer></script>
     <script src="{{ asset('js/admin/pages/cells.js') }}" defer></script>
+    <script src="{{ asset('js/admin/ai/ai-assistant.js') }}" defer></script>
 @endpush
