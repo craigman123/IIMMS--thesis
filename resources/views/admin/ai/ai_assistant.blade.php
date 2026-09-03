@@ -49,7 +49,7 @@
         <div class="ai-messages" id="aiMessages" aria-live="polite">
             <div class="ai-msg ai-msg--assistant">
                 <div class="ai-msg__bubble">
-                    Hi! I'm Atom, your AI assistant. Ask me anything about this page or your data.
+                    Hi! I'm Atom, your AI assistant. Ask me anything that you want me to do.
                 </div>
             </div>
         </div>

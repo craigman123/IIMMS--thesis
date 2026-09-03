@@ -1,0 +1,256 @@
+/* =========== OVERVIEW ICON ANIMATION =========== */
+.nav-item[data-page="overview"]:hover .nav-icon {
+    animation: none;
+}
+
+.nav-item[data-page="overview"] .nav-icon rect:nth-of-type(2) {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.nav-item[data-page="overview"]:hover .nav-icon rect:nth-of-type(2) {
+    animation: nav-icon-corner-bounce 0.5s ease-in-out;
+}
+
+@keyframes nav-icon-corner-bounce {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-5px) rotate(-90deg); }
+    100% { transform: translateY(0); }
+}
+
+/* =========== AI ASSISTANT ICON ANIMATION =========== */
+.nav-item[data-page="ai-assistant"]:hover .nav-svg {
+    animation: spin 1s ease-in-out;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(180deg); }
+}
+
+/* ================= ADD INMATE ICON ANIMATION ================= */
+.nav-item[data-page="add-inmate"]:hover .nav-svg {
+    animation: zoom 0.5s ease-in-out;
+}
+
+@keyframes zoom {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* ===================== ALL INMATE ICON ANIMATION ================= */ 
+.nav-item[data-page="inmates"]:hover .nav-icon {
+    animation: none;
+}
+
+.nav-item[data-page="inmates"] .nav-icon path:nth-of-type(2),
+.nav-item[data-page="inmates"] .nav-icon path:nth-of-type(3) {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.nav-item[data-page="inmates"]:hover .nav-icon path:nth-of-type(2),
+.nav-item[data-page="inmates"]:hover .nav-icon path:nth-of-type(3) {
+    animation: nav-icon-sneak-right 0.6s ease-in-out;
+}
+
+@keyframes nav-icon-sneak-right {
+    0% { transform: translateX(0); }
+    60% { transform: translateX(3px); }
+    100% { transform: translateX(0); }
+}
+
+/* ============================ INCIDENT MANAGEMENT ICON ANIMATION ========================== */
+.nav-item[data-page="incidents"]:hover .nav-icon {
+    animation: none;
+}
+ 
+.nav-item[data-page="incidents"] .nav-icon .stLine,
+.nav-item[data-page="incidents"] .nav-icon .ndLine {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+ 
+.nav-item[data-page="incidents"]:hover .nav-icon .stLine,
+.nav-item[data-page="incidents"]:hover .nav-icon .ndLine {
+    animation: warning-pulse 0.8s ease-in-out infinite;
+}
+ 
+@keyframes warning-pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(1.25); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* =============== INMATE SCHEDULES ICON ANIMATION ============== */
+.nav-item-3d svg {
+    transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+    transform-style: preserve-3d;
+    transform-origin: top center;
+}
+
+.nav-item-3d:hover svg {
+    animation: page-flip 0.6s ease-in-out;
+}
+
+@keyframes page-flip {
+    0% {
+        transform: rotateX(0deg);
+    }
+    50% {
+        transform: rotateX(-90deg);
+    }
+    100% {
+        transform: rotateX(0deg);
+    }
+}
+
+/* ============== ADD CELL ICON ANIMATION ==============  */
+.plus-icon {
+    transition: transform 1s ease;
+}
+
+.nav-item:hover .plus-icon {
+    animation: rotate 1s ease-in-out;
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==================== CELL ASSIGNMENT ICON ANIMATION ==========================  */
+.nav-item[data-page="cells"] .nav-icon rect,
+.nav-item[data-page="cells"] .nav-icon path {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
+}
+
+.nav-item[data-page="cells"]:hover .nav-icon rect,
+.nav-item[data-page="cells"]:hover .nav-icon path {
+    animation: draw-grid 0.6s ease-in-out;
+}
+
+@keyframes draw-grid {
+    0% { stroke-dashoffset: 0; }
+    50% { stroke-dashoffset: 100; }
+    100% { stroke-dashoffset: 0; }
+}
+
+/* ==================== STAFF LIST ICON ANIMATION ==========================  */
+.nav-item[data-page="staff-list"] svg path:nth-of-type(2) {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+}
+
+.nav-item[data-page="staff-list"]:hover svg path:nth-of-type(2) {
+    animation: staff-highlight 0.5s ease-in-out;
+}
+
+@keyframes staff-highlight {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.15) translateY(-1px); }
+}
+
+/* ==================== STAFF ASSIGNMENT ICON ANIMATION ==========================  */
+.nav-item[data-page="staff-assignment"] svg path:nth-of-type(2) {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+}
+
+.nav-item[data-page="staff-assignment"]:hover svg path:nth-of-type(2) {
+    animation: team-bounce 0.6s ease-in-out;
+}
+
+@keyframes team-bounce {
+    0%, 100% { transform: scaleY(1) translateY(0); }
+    50% { transform: scaleY(1.15) translateY(-2px); }
+}
+
+/* ==================== USERS ACCOUNTS ICON ANIMATION ==========================  */
+.nav-item[data-page="users"] .nav-icon circle {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.nav-item[data-page="users"]:hover .nav-icon circle {
+    animation: head-bounce 0.5s ease-in-out;
+}
+
+@keyframes head-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* ==================== AUDIT LOGS ICON ANIMATION ==========================  */
+.nav-item[data-page="logs"] .nav-icon line,
+.nav-item[data-page="logs"] .nav-icon polyline:last-of-type {
+    transform-box: fill-box;
+    transform-origin: left center;
+}
+
+.nav-item[data-page="logs"]:hover .nav-icon line:nth-of-type(1) {
+    animation: line-scan 0.4s ease-in-out;
+}
+
+.nav-item[data-page="logs"]:hover .nav-icon line:nth-of-type(2) {
+    animation: line-scan 0.4s ease-in-out 0.1s backwards;
+}
+
+.nav-item[data-page="logs"]:hover .nav-icon polyline:last-of-type {
+    animation: line-scan 0.4s ease-in-out 0.2s backwards;
+}
+
+@keyframes line-scan {
+    0% { transform: scaleX(0); }
+    100% { transform: scaleX(1); }
+}
+
+/* ==================== ANALYTICS ICON ANIMATION ==========================  */
+.nav-item[data-page="analytics"] svg {
+    transition: transform 0.3s ease;
+}
+
+.nav-item[data-page="analytics"]:hover svg {
+    animation: chart-spin 0.6s ease-in-out;
+}
+
+@keyframes chart-spin {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ==================== PROFILE INFORMATION ICON ANIMATION ==========================  */
+.nav-item[data-page="profile"] svg path:nth-of-type(3) {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+.nav-item[data-page="profile"]:hover svg path:nth-of-type(3) {
+    animation: id-pop 0.4s ease-in-out;
+}
+
+@keyframes id-pop {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* ==================== EMERGENCY CONTACTS ICON ANIMATION ==========================  */
+.nav-item[data-page="contacts"] svg {
+    transform-box: fill-box;
+    transform-origin: top center;
+}
+
+.nav-item[data-page="contacts"]:hover svg {
+    animation: phone-ring 0.5s ease-in-out;
+}
+
+@keyframes phone-ring {
+    0%, 100% { transform: rotate(0deg); }
+    20% { transform: rotate(-15deg); }
+    40% { transform: rotate(15deg); }
+    60% { transform: rotate(-10deg); }
+    80% { transform: rotate(10deg); }
+}

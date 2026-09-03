@@ -29,7 +29,7 @@
         <a href="#" class="nav-item active" data-page="overview">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="7" rx="1"/>
-                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect class="single-cube" x="14" y="3" width="7" height="7" rx="1"/>
                 <rect x="3" y="14" width="7" height="7" rx="1"/>
                 <rect x="14" y="14" width="7" height="7" rx="1"/>
             </svg>
@@ -37,7 +37,7 @@
         </a>
 
         <a href="#" class="nav-item" data-page="ai-assistant">
-             <svg  xmlns="http://www.w3.org/2000/svg" width="20" height="20"  
+             <svg class="nav-svg" xmlns="http://www.w3.org/2000/svg" width="20" height="20"  
                 fill="currentColor" viewBox="0 0 24 24" >
             <path d="M19.62 12s.08-.1.11-.14c1.34-1.84 1.67-3.57.93-4.86-.78-1.35-2.58-1.87-4.85-1.6C14.91 3.3 13.56 2 12 2S9.09 3.3 8.19 5.4c-2.27-.27-4.07.25-4.85 1.6-.74 1.29-.41 3.01.93 4.86.04.05.08.1.11.14-.04.05-.08.1-.11.14-1.34 1.84-1.67 3.57-.93 4.86.65 1.12 2 1.68 3.74 1.68.35 0 .73-.03 1.11-.08.9 2.1 2.25 3.4 3.81 3.4s2.91-1.3 3.81-3.4c.38.05.76.08 1.11.08 1.74 0 3.09-.55 3.74-1.68.74-1.29.41-3.01-.93-4.86-.04-.05-.08-.1-.11-.14m-2.66-4.67c1.02 0 1.73.25 1.97.67.29.5.03 1.44-.67 2.47-.44-.43-.92-.85-1.44-1.25-.09-.65-.21-1.28-.35-1.86.17-.01.34-.02.5-.02ZM13.5 14.6c-.51.3-1.01.55-1.5.78-.49-.23-.99-.48-1.5-.78-.5-.29-.97-.59-1.43-.91C9.02 13.15 9 12.59 9 12s.03-1.15.07-1.69c.45-.32.93-.62 1.43-.91.51-.3 1.01-.55 1.5-.77.49.23.99.48 1.5.77.5.29.97.59 1.43.91.05.54.07 1.1.07 1.69s-.03 1.15-.07 1.69c-.45.32-.93.62-1.43.91M12 4c.56 0 1.23.65 1.79 1.81-.58.17-1.18.38-1.79.63-.61-.25-1.21-.46-1.79-.63C10.78 4.65 11.45 4 12 4M5.07 8c.24-.42.94-.67 1.97-.67.16 0 .33.01.5.02-.15.59-.27 1.21-.35 1.86-.52.4-1 .82-1.44 1.25-.7-1.03-.96-1.97-.67-2.47Zm0 8c-.29-.5-.03-1.44.67-2.47.44.43.92.85 1.44 1.25.09.65.21 1.28.35 1.86-1.29.09-2.19-.16-2.47-.65ZM12 20c-.56 0-1.23-.65-1.79-1.82.58-.17 1.18-.38 1.79-.63.61.25 1.21.46 1.79.63C13.22 19.34 12.55 20 12 20m6.93-4c-.28.48-1.18.74-2.47.65.15-.59.27-1.21.35-1.86.52-.4 1-.82 1.44-1.25.7 1.03.96 1.97.67 2.47Z"></path><path d="M12 10.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 1 0 0-3"></path>
             </svg>
@@ -47,7 +47,7 @@
         <div class="nav-section-label">Inmate Management</div>
 
         <a href="#" class="nav-item" data-page="add-inmate">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" >
+            <svg class="nav-svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24" >
             <path d="M22 11h-3V8h-2v3h-3v2h3v3h2v-3h3zM4 8c0 2.28 1.72 4 4 4s4-1.72 4-4-1.72-4-4-4-4 1.72-4 4m6 0c0 1.18-.82 2-2 2s-2-.82-2-2 .82-2 2-2 2 .82 2 2M3 20h10c.55 0 1-.45 1-1v-1c0-2.76-2.24-5-5-5H7c-2.76 0-5 2.24-5 5v1c0 .55.45 1 1 1m4-5h2c1.65 0 3 1.35 3 3H4c0-1.65 1.35-3 3-3"></path>
             </svg>
             <span class="nav-label">Add Inmates</span>
@@ -67,14 +67,14 @@
         <a href="#" class="nav-item" data-page="incidents">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                <line x1="12" y1="9" x2="12" y2="13"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                <line class="stLine" x1="12" y1="9" x2="12" y2="13"/>
+                <line class="ndLine" x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
             <span class="nav-label">Incidents</span>
             <span class="nav-badge alert" id="badge-incidents">—</span>
         </a>
 
-        <a href="#" class="nav-item" data-page="schedules">
+        <a href="#" class="nav-item nav-item-3d" data-page="schedules">
             <svg  xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 24 24" >
             <path d="M8 13h8v2H8z"></path><path d="M19 4h-2V2h-2v2H9V2H7v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2M5 20V8h14V6v14z"></path>
             </svg>
@@ -84,11 +84,13 @@
         <div class="nav-section-label">Cell Management</div>
         
         <a href="#" class="nav-item" data-page="add-cell">
-            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" >
-                <path d="M4.5 11h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5C3.67 3 3 3.67 3 4.5v5c0 .83.67 1.5 1.5 1.5M5 5h4v4H5zm14.5-2h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5M19 9h-4V5h4zM4.5 21h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5m.5-6h4v4H5zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3z"></path>
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4.5 11h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5C3.67 3 3 3.67 3 4.5v5c0 .83.67 1.5 1.5 1.5M5 5h4v4H5zm14.5-2h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5M19 9h-4V5h4zM4.5 21h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5m.5-6h4v4H5z"></path>
+                <path class="plus-icon" d="M18 13h-2v3h-3v2h3v3h2v-3h3v-2h-3z" transform-origin="19px 17px"></path>
             </svg>
             <span class="nav-label">Add Cells</span>
         </a>
+
         <a href="#" class="nav-item" data-page="cells">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
@@ -100,8 +102,9 @@
         <div class="nav-section-label">Staff Management</div>
 
             <a href="#" class="nav-item" data-page="staff-list">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" >
-                    <path d="M4.5 11h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5C3.67 3 3 3.67 3 4.5v5c0 .83.67 1.5 1.5 1.5M5 5h4v4H5zm14.5-2h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5M19 9h-4V5h4zM4.5 21h5c.83 0 1.5-.67 1.5-1.5v-5c0-.83-.67-1.5-1.5-1.5h-5c-.83 0-1.5.67-1.5 1.5v5c0 .83.67 1.5 1.5 1.5m.5-6h4v4H5zm13-2h-2v3h-3v2h3v3h2v-3h3v-2h-3z"></path>
+                <svg  xmlns="http://www.w3.org/2000/svg" width="24" height="24"  
+                fill="currentColor" viewBox="0 0 24 24" >
+                <path d="M19 2H5c-.55 0-1 .45-1 1v4H2v2h2v2H2v2h2v2H2v2h2v4c0 .55.45 1 1 1h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2m0 18H6V4h13z"></path><path d="M12.5 7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0-5m4.5 9c0-1.66-1.34-3-3-3h-3c-1.66 0-3 1.34-3 3v1h9z"></path>
                 </svg>
                 <span class="nav-label">Staff List</span>
             </a>

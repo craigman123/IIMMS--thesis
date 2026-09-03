@@ -11,8 +11,10 @@
     <link rel="stylesheet" href="{{ asset('css/admin/pages/add-inmate.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/pages/add-cell.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/pages/cells-drawer.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/admin/navbars/topbar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/navbar/topbar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/ai/ai-assistant.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/responsiveness/responsive.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/navbar/sidebar.css') }}">
 @endpush
 
 @section('content')

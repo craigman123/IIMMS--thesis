@@ -162,7 +162,7 @@ html, body {
 
 .sidebar.collapsed .nav-section-label { opacity: 0; }
 
-.nav-item {
+.nav-item, .nav-item-3d {
     display: flex;
     align-items: center;
     gap: 10px;
