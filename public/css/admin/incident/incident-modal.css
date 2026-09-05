@@ -102,30 +102,26 @@
     z-index: 2;
 }
 
-/* The spinning gradient itself — sits 2px outside the row on every
-   side. Left unmasked on purpose; the ::after cover below is what
-   trims it down to a thin ring. */
+/* The glow ring — sits evenly around the row on every side (no
+   conic-gradient here on purpose, since a rotating gradient with
+   gold only at 90deg/270deg reads as a lopsided "crooked" ring once
+   it spins). This is a flat gold ring plus a soft blurred halo,
+   symmetric on all four sides at rest. */
 .pressing-glow::before {
     content: "";
     position: absolute;
     inset: -2px;
     border-radius: inherit;
-    background: conic-gradient(
-        from 0deg,
-        rgba(205, 164, 63, 0) 0deg,
-        var(--im-gold) 90deg,
-        rgba(205, 164, 63, 0) 180deg,
-        var(--im-gold) 270deg,
-        rgba(205, 164, 63, 0) 360deg
-    );
+    border: 1.5px solid var(--im-gold);
+    box-shadow: 0 0 0 0 rgba(205, 164, 63, 0);
     opacity: 0;
     z-index: 0;
+    transition: opacity 0.25s ease, box-shadow 0.25s ease;
 }
 
 /* Opaque cover matching the row's own background, positioned flush
-   with the row's edges (i.e. 2px inside ::before). This is what
-   turns the gradient into a ring instead of a solid fill — only the
-   2px sliver of ::before that pokes out past this cover is visible. */
+   with the row's edges (i.e. 2px inside ::before). This keeps the
+   glow reading as a ring around the row rather than a filled block. */
 .pressing-glow::after {
     content: "";
     position: absolute;
@@ -141,20 +137,25 @@
     background: var(--im-gold-soft);
 }
 
-/* Fires once when JS adds .is-selecting after a click — a couple of
-   quick spins that fade out, instead of spinning forever on every row. */
-.pressing-glow.is-selecting {
-    pointer-events: none;
+/* Selected state: steady glow, no rotation. Fades in immediately and
+   then gently pulses in place so it still reads as "alive" without
+   ever spinning or looking lopsided. */
+.pressing-glow.is-selected::before {
+    opacity: 1;
+    animation: pressing-glow-pulse 2.2s ease-in-out infinite;
 }
 
-.pressing-glow.is-selecting::before {
-    animation: pressing-glow-spin 0.5s linear forwards;
+.pressing-glow.is-selected::after {
+    background: var(--im-gold-soft);
 }
 
-@keyframes pressing-glow-spin {
-    0% { transform: rotate(0deg); opacity: 1; }
-    75% { opacity: 1; }
-    100% { transform: rotate(540deg); opacity: 0; }
+@keyframes pressing-glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 6px 1px rgba(205, 164, 63, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 14px 3px rgba(205, 164, 63, 0.6);
+    }
 }
 
 .incident-flow.is-open .incident-modal-report {
@@ -513,5 +514,10 @@
     .incident-modal-report,
     .incident-flow-backdrop {
         transition: none !important;
+    }
+
+    .pressing-glow.is-selected::before {
+        animation: none;
+        box-shadow: 0 0 10px 2px rgba(205, 164, 63, 0.5);
     }
 }

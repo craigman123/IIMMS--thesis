@@ -6,8 +6,9 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\CellController;
-use App\Http\Controllers\InmateController;
+use App\Http\Controllers\Management\Cell\CellController;
+use App\Http\Controllers\Management\Inmate\InmateController;
+use App\Http\Controllers\Management\Inmate\IncidentController;
 use App\Http\Controllers\ArtificialIntelligence\AiAssistantController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,12 +42,12 @@ Route::get('/test-mail', function () {
 Route::middleware(['auth', 'admin'])->group(function () {
 
     // Dashboard
-    Route::get('/admin_dashboard', [AdminController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get   ('/admin_dashboard',                 [AdminController::class, 'adminDashboard'])   ->name('admin.dashboard');
 
     // Inmates
-    Route::post('/admin/inmates', [InmateController::class, 'store'])->name('inmates.store');
-    Route::get('/admin/inmates/{inmate}', [InmateController::class, 'show'])->name('inmates.show');
-    Route::put('/admin/inmates/{inmate}', [InmateController::class, 'update'])->name('inmates.update');
+    Route::post  ('/admin/inmates',                   [InmateController::class, 'store'])           ->name('inmates.store');
+    Route::get   ('/admin/inmates/{inmate}',          [InmateController::class, 'show'])            ->name('inmates.show');
+    Route::put   ('/admin/inmates/{inmate}',          [InmateController::class, 'update'])          ->name('inmates.update');
 
     // ── Cells ─────────────────────────────────────────────────────
     Route::get   ('/admin/cells',                     [CellController::class, 'index'])             ->name('admin.cells.index');
@@ -64,4 +65,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post  ('/admin/ai-assistant/models',       [AiAssistantController::class, 'setModel'])    ->name('ai-assistant.models.set');
     Route::post  ('/admin/ai-assistant/chat',         [AiAssistantController::class, 'chat'])        ->name('ai-assistant.chat');
 
+    Route::get   ('/admin/incidents',                 [IncidentController::class, 'index'])          ->name('admin.incidents.index');
+    Route::get   ('/admin/incidents/inmates',         [IncidentController::class, 'inmates'])        ->name('admin.incidents.inmates');
+    Route::post  ('/admin/incidents',                 [IncidentController::class, 'store'])          ->name('admin.incidents.store');
 });

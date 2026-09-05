@@ -2,20 +2,12 @@
     'use strict';
 
     /* -----------------------------------------------------------
-       Placeholder inmate data — replace with your real source
-       (e.g. hydrate this array from a JSON blob rendered by Blade,
-       or fetch it from an endpoint before opening the modal).
+       Endpoints — adjust these if your route names/paths differ.
        ----------------------------------------------------------- */
-    var INMATES = [
-        { id: 'INM-1023', name: 'John Doe', block: 'C', status: 'Active' },
-        { id: 'INM-1044', name: 'Mia Santos', block: 'A', status: 'Active' },
-        { id: 'INM-1067', name: 'Ramon Cruz', block: 'B', status: 'Isolation' },
-        { id: 'INM-1098', name: 'Ariel Bautista', block: 'C', status: 'Medical' },
-        { id: 'INM-1112', name: 'Leo Fernandez', block: 'D', status: 'Active' },
-        { id: 'INM-1130', name: 'Grace Villanueva', block: 'B', status: 'Release pending' },
-        { id: 'INM-1155', name: 'Noel Reyes', block: 'A', status: 'Active' },
-        { id: 'INM-1170', name: 'Diego Manalo', block: 'D', status: 'Isolation' }
-    ];
+    var ENDPOINTS = {
+        inmates: '/admin/incidents/inmates',
+        incidents: '/admin/incidents'
+    };
 
     var flow = document.getElementById('incidentFlow');
     var backdrop = document.getElementById('incidentBackdrop');
@@ -37,33 +29,67 @@
     var targetMeta = document.getElementById('incidentTargetMeta');
     var cancelFormBtn = document.getElementById('cancelIncidentForm');
     var form = document.getElementById('incidentForm');
+    var submitBtn = form.querySelector('button[type="submit"]');
 
     var tableBody = document.getElementById('incidentTableBody');
 
     var selectedInmate = null;
+    var selectedRowBtn = null;
+    var searchDebounce = null;
+
+    function csrfToken() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
 
     function initials(name) {
         return name.split(' ').map(function (p) { return p[0]; }).join('').slice(0, 2).toUpperCase();
     }
 
-    function renderInmateList() {
-        var query = (searchInput.value || '').trim().toLowerCase();
-        var block = blockFilter.value;
-        var status = statusFilter.value;
+    function severityClass(value) {
+        return 'severity-badge severity-' + value.toLowerCase();
+    }
 
-        var filtered = INMATES.filter(function (inmate) {
-            var matchesQuery = !query ||
-                inmate.name.toLowerCase().indexOf(query) !== -1 ||
-                inmate.id.toLowerCase().indexOf(query) !== -1;
-            var matchesBlock = !block || inmate.block === block;
-            var matchesStatus = !status || inmate.status === status;
-            return matchesQuery && matchesBlock && matchesStatus;
-        });
+    function statusClass(value) {
+        return 'status-badge status-' + value.toLowerCase().replace(/\s+/g, '-');
+    }
 
+    /* -------------------- inmate list (from backend) -------------------- */
+
+    function fetchInmates() {
+        var params = new URLSearchParams();
+        var query = (searchInput.value || '').trim();
+        if (query) params.set('search', query);
+        if (blockFilter.value) params.set('block', blockFilter.value);
+        if (statusFilter.value) params.set('status', statusFilter.value);
+
+        listEl.setAttribute('aria-busy', 'true');
+
+        fetch(ENDPOINTS.inmates + '?' + params.toString(), {
+            headers: { 'Accept': 'application/json' }
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('Failed to load inmates');
+                return res.json();
+            })
+            .then(renderInmateList)
+            .catch(function (err) {
+                listEl.innerHTML = '';
+                listEmpty.hidden = false;
+                listEmpty.textContent = 'Could not load inmates. Try again.';
+                console.error(err);
+            })
+            .finally(function () {
+                listEl.removeAttribute('aria-busy');
+            });
+    }
+
+    function renderInmateList(inmates) {
         listEl.innerHTML = '';
-        listEmpty.hidden = filtered.length !== 0;
+        listEmpty.hidden = inmates.length !== 0;
+        listEmpty.textContent = 'No inmates match those filters.';
 
-        filtered.forEach(function (inmate) {
+        inmates.forEach(function (inmate) {
             var li = document.createElement('li');
 
             var btn = document.createElement('button');
@@ -83,14 +109,7 @@
                 '</span>';
 
             btn.addEventListener('click', function () {
-                if (btn.classList.contains('is-selecting')) return;
-                btn.classList.add('is-selecting');
-                btn.setAttribute('aria-pressed', 'true');
-                setTimeout(function () {
-                    btn.classList.remove('is-selecting');
-                    btn.removeAttribute('aria-pressed');
-                    selectInmate(inmate);
-                }, 450);
+                selectInmate(inmate, btn);
             });
 
             li.appendChild(btn);
@@ -98,18 +117,37 @@
         });
     }
 
-    function selectInmate(inmate) {
+    function selectInmate(inmate, btn) {
+        // clear glow off any previously selected row
+        if (selectedRowBtn) {
+            selectedRowBtn.classList.remove('is-selected');
+            selectedRowBtn.setAttribute('aria-pressed', 'false');
+        }
+
         selectedInmate = inmate;
+        selectedRowBtn = btn || null;
+
+        if (selectedRowBtn) {
+            selectedRowBtn.classList.add('is-selected');
+            selectedRowBtn.setAttribute('aria-pressed', 'true');
+        }
+
         targetAvatar.textContent = initials(inmate.name);
         targetName.textContent = inmate.name;
         targetMeta.textContent = inmate.id + ' \u00B7 Block ' + inmate.block + ' \u00B7 ' + inmate.status;
-        flow.classList.add('inmate-selected');
+
+        // small delay so the glow is visible before the panel slides over
+        setTimeout(function () {
+            flow.classList.add('inmate-selected');
+        }, 200);
     }
+
+    /* -------------------- open / close flow -------------------- */
 
     function openFlow() {
         flow.setAttribute('aria-hidden', 'false');
         flow.classList.add('is-open');
-        renderInmateList();
+        fetchInmates();
         document.body.style.overflow = 'hidden';
         setTimeout(function () { searchInput.focus(); }, 350);
     }
@@ -119,6 +157,10 @@
         flow.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
         selectedInmate = null;
+        if (selectedRowBtn) {
+            selectedRowBtn.classList.remove('is-selected');
+            selectedRowBtn = null;
+        }
         form.reset();
     }
 
@@ -126,14 +168,20 @@
         flow.classList.remove('inmate-selected');
     }
 
-    function nextRefNumber() {
-        var count = tableBody.querySelectorAll('tr[data-incident-row]').length + 1;
-        var year = new Date().getFullYear();
-        return 'INC-' + year + '-' + String(count).padStart(3, '0');
-    }
+    /* -------------------- incidents table -------------------- */
 
-    function severityClass(value) {
-        return 'severity-badge severity-' + value.toLowerCase();
+    function loadIncidents() {
+        fetch(ENDPOINTS.incidents, { headers: { 'Accept': 'application/json' } })
+            .then(function (res) { return res.json(); })
+            .then(function (incidents) {
+                tableBody.innerHTML = '';
+                if (!incidents.length) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="empty-cell">No incidents recorded.</td></tr>';
+                    return;
+                }
+                incidents.forEach(addIncidentRow);
+            })
+            .catch(function (err) { console.error('Failed to load incidents', err); });
     }
 
     function addIncidentRow(data) {
@@ -144,6 +192,7 @@
 
         var tr = document.createElement('tr');
         tr.setAttribute('data-incident-row', '');
+        tr.setAttribute('data-id', data.id);
         tr.innerHTML =
             '<td>' + data.ref + '</td>' +
             '<td>' + data.type + '</td>' +
@@ -151,16 +200,9 @@
             '<td>' + data.location + '</td>' +
             '<td><span class="' + severityClass(data.severity) + '">' + data.severity + '</span></td>' +
             '<td>' + data.date + '</td>' +
-            '<td><span class="status-badge status-open">Open</span></td>';
+            '<td><span class="' + statusClass(data.status) + '">' + data.status + '</span></td>';
 
         tableBody.prepend(tr);
-    }
-
-    function formatDate(value) {
-        if (!value) return '';
-        var d = new Date(value);
-        return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) +
-            ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
     }
 
     /* -------------------- events -------------------- */
@@ -170,9 +212,12 @@
     cancelFormBtn.addEventListener('click', closeFlow);
     backBtn.addEventListener('click', backToPicker);
 
-    searchInput.addEventListener('input', renderInmateList);
-    blockFilter.addEventListener('change', renderInmateList);
-    statusFilter.addEventListener('change', renderInmateList);
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(fetchInmates, 250);
+    });
+    blockFilter.addEventListener('change', fetchInmates);
+    statusFilter.addEventListener('change', fetchInmates);
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && flow.classList.contains('is-open')) {
@@ -188,15 +233,41 @@
         e.preventDefault();
         if (!selectedInmate) return;
 
-        addIncidentRow({
-            ref: nextRefNumber(),
-            type: document.getElementById('incidentType').value,
-            inmate: selectedInmate.name,
-            location: document.getElementById('incidentLocation').value,
-            severity: document.getElementById('incidentSeverity').value,
-            date: formatDate(document.getElementById('incidentDateTime').value)
-        });
+        submitBtn.disabled = true;
 
-        closeFlow();
+        fetch(ENDPOINTS.incidents, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken()
+            },
+            body: JSON.stringify({
+                inmate_id: selectedInmate.db_id || selectedInmate.id,
+                type: document.getElementById('incidentType').value,
+                location: document.getElementById('incidentLocation').value,
+                severity: document.getElementById('incidentSeverity').value,
+                occurred_at: document.getElementById('incidentDateTime').value,
+                description: document.getElementById('incidentDescription').value
+            })
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error('Failed to submit incident');
+                return res.json();
+            })
+            .then(function (incident) {
+                addIncidentRow(incident);
+                closeFlow();
+            })
+            .catch(function (err) {
+                console.error(err);
+                alert('Could not submit the incident report. Please try again.');
+            })
+            .finally(function () {
+                submitBtn.disabled = false;
+            });
     });
+
+    // initial table load
+    loadIncidents();
 })();

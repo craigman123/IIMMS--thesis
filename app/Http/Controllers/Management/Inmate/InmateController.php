@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Management\Inmate;
 
+use App\Http\Controllers\Controller;
 use App\Models\Cell;
 use App\Models\Inmate;
 use Illuminate\Http\Request;
