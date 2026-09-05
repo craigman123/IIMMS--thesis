@@ -208,6 +208,7 @@
         timer.style.marginLeft = '8px';
         timer.style.fontSize = '0.75em';
         timer.style.opacity = '0.65';
+        timer.style.width = '2em';
         timer.textContent = '0s';
         bubble.appendChild(timer);
 

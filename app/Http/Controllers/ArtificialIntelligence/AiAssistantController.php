@@ -109,8 +109,8 @@ class AiAssistantController extends Controller
                 'messages' => $messages,
                 'stream' => false,
                 // Lower temperature + a repeat penalty make short structured
-                // JSON outputs far less likely to stutter/repeat themselves,
-                // which is the root cause of the duplicated-JSON bug.
+                // outputs far less likely to stutter/repeat themselves,
+                // which was the root cause of the old duplicated-JSON bug.
                 'options' => [
                     'temperature' => 0.2,
                     'repeat_penalty' => 1.3,
@@ -149,6 +149,10 @@ class AiAssistantController extends Controller
             }
 
             if ($action && $action['action'] === 'generate_document') {
+                if (($action['type'] ?? null) === 'letter') {
+                    $action['body'] = $this->extractLetterBody($rawReply);
+                }
+
                 $file = $this->documents->handle($action);
 
                 if ($file) {
@@ -183,13 +187,14 @@ class AiAssistantController extends Controller
     }
 
     /**
-     * System prompt: instructs the small local model to respond with a strict
-     * JSON action block ONLY when the user is asking for a generated document.
-     * Otherwise it should just reply normally in plain text.
+     * System prompt: instructs the small local model to respond with a
+     * plain-line action block ONLY when the user is asking for a generated
+     * document or a live data lookup. Otherwise it should just reply
+     * normally in plain text.
      *
      * The prompt is authored as Markdown purely so it's readable/highlighted
-     * in an editor (headers, fenced JSON examples, etc). The small local
-     * model doesn't need that decoration, so we strip it down to plain text
+     * in an editor (headers, fenced examples, etc). The small local model
+     * doesn't need that decoration, so we strip it down to plain text
      * before it goes in the message payload.
      */
     protected function systemPrompt(): array
@@ -221,199 +226,153 @@ class AiAssistantController extends Controller
     }
 
     /**
-     * Tries to parse the model's raw reply as a document-generation action.
-     * Returns null if it's a normal text reply.
+     * Tries to parse the model's raw reply as a document-generation or
+     * data-query action. Returns null if it's a normal text reply.
      *
-     * Small local models occasionally stutter/repeat themselves on short
-     * structured outputs, e.g. producing:
-     *   {"action":"query_data","key":"total_cells"} {"action":"query_data","key":"total_cells"}
-     * strict json_decode() on the whole string fails on trailing content
-     * like that, so instead we pull out just the FIRST balanced {...}
-     * object in the reply and decode only that, ignoring whatever the
-     * model appended after it.
+     * Format the model is asked to produce is plain "LABEL: value" lines,
+     * e.g.:
+     *   ACTION: generate_document
+     *   TYPE: letter
+     *   SUBJECT: Overcrowding in Cell Block 3
+     *   RECIPIENT: Warden
+     *   ===BODY===
+     *   ...
+     *   ===END BODY===
+     *
+     * We deliberately moved off JSON for this: a small local model asked to
+     * hop between rigid JSON syntax and a free-text letter body would
+     * intermittently drop the JSON header entirely and jump straight to
+     * the body (or produce unescaped newlines/quotes inside a JSON string
+     * that broke json_decode()). Flat label lines give the model nothing
+     * to get the escaping of wrong, and a missing/malformed line just
+     * fails to populate one field instead of invalidating the whole
+     * action the way one bad character in JSON did.
+     *
+     * Parsing rules:
+     *   - The reply must start with an ACTION: line (after stripping any
+     *     accidental code fences). Anything before that means it's a
+     *     normal chat reply, not an action.
+     *   - Metadata lines are read until the first ===BODY=== marker, the
+     *     first blank line, or a line that isn't "label: value" shaped.
+     *   - Stray/malformed lines are skipped rather than failing the whole
+     *     parse, so a small model going slightly off-script for one field
+     *     doesn't take down the rest of the action.
      */
     protected function extractAction(string $rawReply): ?array
     {
         $trimmed = trim($rawReply);
 
         // Strip accidental markdown code fences some models add despite instructions.
-        $trimmed = preg_replace('/^```(?:json)?|```$/m', '', $trimmed);
+        $trimmed = preg_replace('/^```[a-z]*\n?|```$/m', '', $trimmed);
         $trimmed = trim($trimmed);
 
-        if ($trimmed === '' || !str_contains($trimmed, '{')) {
+        if ($trimmed === '' || !preg_match('/^ACTION\s*:/i', $trimmed)) {
             return null;
         }
 
-        $jsonString = $this->extractFirstJsonObject($trimmed);
+        // Only scan the metadata block: everything up to the first
+        // ===BODY=== marker, if the reply has one (letters only).
+        $metaText = $trimmed;
+        if (preg_match('/===\s*BODY\s*===/i', $trimmed, $bodyMatch, PREG_OFFSET_CAPTURE)) {
+            $metaText = substr($trimmed, 0, $bodyMatch[0][1]);
+        }
 
-        if ($jsonString === null) {
-            // TEMP DIAGNOSTIC — remove once the decode-failure cause is confirmed.
-            Log::warning('AI action: extractFirstJsonObject found no balanced object', [
-                'trimmed' => $trimmed,
-            ]);
+        $fields = [];
+        foreach (preg_split('/\r\n|\r|\n/', $metaText) as $line) {
+            $line = trim($line);
+
+            if ($line === '') {
+                // A blank line ends the metadata block once we've captured
+                // at least something; a leading blank line is just ignored.
+                if (!empty($fields)) {
+                    break;
+                }
+                continue;
+            }
+
+            if (!preg_match('/^([A-Za-z_]+)\s*:\s*(.*)$/', $line, $lineMatch)) {
+                // Not a "label: value" shaped line — skip it rather than
+                // aborting the whole parse over one stray line.
+                continue;
+            }
+
+            $fields[strtolower($lineMatch[1])] = trim($lineMatch[2]);
+        }
+
+        if (empty($fields['action'])) {
+            Log::warning('AI action: no ACTION line found in parsed fields', ['raw_reply' => $rawReply]);
             return null;
         }
 
-        // Small local models occasionally produce technically-invalid JSON
-        // in longer free-text fields (letters/memos): a stray backslash
-        // that isn't a valid JSON escape, or — more commonly — real line
-        // breaks typed into the "body" field instead of an escaped \n.
-        // json_decode() fails silently on the *entire* object for either
-        // mistake, so we repair both before decoding rather than losing
-        // the whole action over one bad character.
-        $repaired = $this->repairJsonForDecode($jsonString);
+        $action = strtolower($fields['action']);
 
-        $decoded = json_decode($repaired, true);
-
-        if (!is_array($decoded)) {
-            // TEMP DIAGNOSTIC — remove once the decode-failure cause is confirmed.
-            Log::warning('AI action: json_decode failed', [
-                'json_error' => json_last_error_msg(),
-                'raw_extracted' => $jsonString,
-                'repaired' => $repaired,
-            ]);
+        if (!in_array($action, ['generate_document', 'query_data'], true)) {
+            Log::warning('AI action: parsed but action field not recognized', ['fields' => $fields]);
             return null;
         }
 
-        if (!in_array($decoded['action'] ?? null, ['generate_document', 'query_data'], true)) {
-            // TEMP DIAGNOSTIC — remove once the decode-failure cause is confirmed.
-            Log::warning('AI action: decoded but action field not recognized', [
-                'decoded' => $decoded,
-            ]);
-            return null;
+        $decoded = ['action' => $action];
+
+        foreach (['type', 'query', 'subject', 'recipient', 'report', 'key', 'name'] as $field) {
+            if (isset($fields[$field]) && $fields[$field] !== '') {
+                $decoded[$field] = $fields[$field];
+            }
+        }
+
+        if (isset($decoded['type'])) {
+            $decoded['type'] = strtolower($decoded['type']);
+        }
+
+        if (isset($fields['chart_type']) && $fields['chart_type'] !== '') {
+            $decoded['chart_type'] = strtolower($fields['chart_type']);
+        }
+
+        if (isset($fields['limit']) && $fields['limit'] !== '' && is_numeric($fields['limit'])) {
+            $decoded['limit'] = (int) $fields['limit'];
         }
 
         return $decoded;
     }
 
     /**
-     * Repairs two common ways a small local model's JSON output fails
-     * strict json_decode(), without touching well-formed JSON:
+     * Pulls the letter/memo body out from between the ===BODY=== /
+     * ===END BODY=== markers the system prompt asks the model to use.
+     * The body is always plain free text now — there's no JSON to fall
+     * back into decoding, so this only has to handle the marker itself
+     * being slightly malformed or missing.
      *
-     * 1. Invalid backslash escapes (e.g. "\[Name]") — the backslash gets
-     *    escaped itself so it decodes as a literal backslash.
-     * 2. Raw, unescaped control characters inside string values — most
-     *    often literal line breaks in a generated letter/memo body where
-     *    the model typed a real newline instead of writing "\n". These are
-     *    converted to their proper escaped form.
+     * Two layers, in order of preference:
+     *   1. Text between ===BODY=== and ===END BODY=== — the documented,
+     *      expected format.
+     *   2. Text after ===BODY=== through the end of the reply — covers a
+     *      truncated generation that's missing the closing marker.
      *
-     * Both fixes only apply inside quoted string values (tracked via
-     * $inString below) — whitespace and structure outside strings is left
-     * untouched.
+     * Returns '' (not null) if nothing usable is found, so callers can
+     * render an empty-but-valid letter rather than crash.
      */
-    protected function repairJsonForDecode(string $json): string
+    protected function extractLetterBody(string $rawReply): string
     {
-        $length = strlen($json);
-        $out = '';
-        $inString = false;
-        $i = 0;
-
-        $validEscapes = ['"', '\\', '/', 'b', 'f', 'n', 'r', 't', 'u'];
-
-        while ($i < $length) {
-            $char = $json[$i];
-
-            if (!$inString) {
-                if ($char === '"') {
-                    $inString = true;
-                }
-                $out .= $char;
-                $i++;
-                continue;
-            }
-
-            // Inside a string value from here on.
-
-            if ($char === '\\' && $i + 1 < $length) {
-                $next = $json[$i + 1];
-                $out .= in_array($next, $validEscapes, true)
-                    ? $char . $next          // already a valid escape, leave it
-                    : '\\\\' . $next;        // invalid — escape the backslash itself
-                $i += 2;
-                continue;
-            }
-
-            if ($char === '"') {
-                $inString = false;
-                $out .= $char;
-                $i++;
-                continue;
-            }
-
-            // A raw (unescaped) control character inside a string is what
-            // breaks json_decode() when a model writes a real line break.
-            if (ord($char) < 0x20) {
-                switch ($char) {
-                    case "\n":
-                        $out .= '\\n';
-                        break;
-                    case "\r":
-                        $out .= '\\r';
-                        break;
-                    case "\t":
-                        $out .= '\\t';
-                        break;
-                    default:
-                        $out .= sprintf('\\u%04x', ord($char));
-                }
-                $i++;
-                continue;
-            }
-
-            $out .= $char;
-            $i++;
-        }
-
-        return $out;
-    }
-
-    /**
-     * Scans $text for the first balanced {...} substring (respecting quoted
-     * strings and escaped characters, so braces inside string values like
-     * a letter body don't throw off the count) and returns it, or null if
-     * no complete object is found.
-     */
-    protected function extractFirstJsonObject(string $text): ?string
-    {
-        $start = strpos($text, '{');
-
-        if ($start === false) {
-            return null;
-        }
-
-        $depth = 0;
-        $inString = false;
-        $escaped = false;
-        $length = strlen($text);
-
-        for ($i = $start; $i < $length; $i++) {
-            $char = $text[$i];
-
-            if ($inString) {
-                if ($escaped) {
-                    $escaped = false;
-                } elseif ($char === '\\') {
-                    $escaped = true;
-                } elseif ($char === '"') {
-                    $inString = false;
-                }
-                continue;
-            }
-
-            if ($char === '"') {
-                $inString = true;
-            } elseif ($char === '{') {
-                $depth++;
-            } elseif ($char === '}') {
-                $depth--;
-                if ($depth === 0) {
-                    return substr($text, $start, $i - $start + 1);
-                }
+        if (preg_match('/===\s*BODY\s*===(.*?)===\s*END\s*BODY\s*===/is', $rawReply, $matches)) {
+            $body = trim($matches[1]);
+            if ($body !== '') {
+                return $body;
             }
         }
 
-        // Braces never closed - incomplete/truncated JSON, bail out.
-        return null;
+        if (preg_match('/===\s*BODY\s*===(.*)$/is', $rawReply, $matches)) {
+            $body = trim($matches[1]);
+            $body = preg_replace('/===\s*END\s*BODY\s*===\s*$/i', '', $body);
+            $body = trim($body);
+            if ($body !== '') {
+                return $body;
+            }
+        }
+
+        Log::warning('AI action: letter body could not be extracted from any source', [
+            'raw_reply' => $rawReply,
+        ]);
+
+        return '';
     }
 
     protected function confirmationText(array $action): string
