@@ -23,6 +23,8 @@
 
 ## 2. Laravel Setup
 
+### 2.1 Install dependencies
+
 ```bash
 # Install dependencies
 composer install
@@ -33,6 +35,45 @@ cp .env.example .env
 # Generate app key
 php artisan key:generate
 ```
+
+### 2.2 AI Assistant Setup (Ollama)
+
+The AI Assistant runs on a **local** Ollama server — no external API key needed.
+
+1. Download and install Ollama from [ollama.com](https://ollama.com)
+2. Pull a model (the app defaults to `llama3.2:3b`, but any chat-capable model works):
+```bash
+   ollama pull llama3.2:3b
+```
+3. Start the Ollama server (leave this running in its own terminal):
+```bash
+   ollama serve
+```
+4. (Optional) Set which model and host the app should use in `.env`:
+```env
+   OLLAMA_BASE_URL=http://127.0.0.1:11434
+   OLLAMA_MODEL=llama3.2:3b
+```
+   If omitted, these fall back to the defaults in `config/services.php`.
+5. Confirm the system prompt file exists at:
+
+
+### 2.3 PDF Generation Setup
+
+Document generation (inmate profile PDFs, letters/memos) uses `barryvdh/laravel-dompdf`.
+
+```bash
+composer require barryvdh/laravel-dompdf
+```
+
+Laravel's package auto-discovery registers the `Pdf` facade automatically — no manual config needed in most setups. If you need to customize paper size, fonts, or output options, you can publish the config file:
+
+```bash
+php artisan vendor:publish --provider="Barryvdh\DomPDF\ServiceProvider"
+```
+
+This creates `config/dompdf.php`, where you can adjust defaults.
+
 
 ---
 

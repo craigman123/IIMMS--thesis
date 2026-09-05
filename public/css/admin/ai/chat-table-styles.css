@@ -1,0 +1,62 @@
+/* Add this to whatever stylesheet already defines .ai-drawer / .ai-msg / etc. */
+
+.ai-table-wrapper {
+    margin-top: 8px;
+    max-width: 100%;
+}
+
+.ai-table-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #94a3b8;
+    margin-bottom: 6px;
+}
+
+.ai-table-scroll {
+    max-height: 260px;      /* scrolls after ~6-7 rows, keeps the drawer usable */
+    overflow-y: auto;
+    overflow-x: auto;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+
+.ai-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 12.5px;
+    white-space: nowrap;
+}
+
+.ai-table thead th {
+    position: sticky;
+    top: 0;
+    background: #1e293b;
+    color: #e2e8f0;
+    text-align: left;
+    padding: 7px 10px;
+    font-weight: 600;
+    border-bottom: 1px solid #334155;
+    z-index: 1;
+}
+
+.ai-table tbody td {
+    padding: 6px 10px;
+    color: #cbd5e1;
+    border-bottom: 1px solid #1e293b;
+}
+
+.ai-table tbody tr:hover td {
+    background: #0f172a;
+}
+
+.ai-table-scroll::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.ai-table-scroll::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}

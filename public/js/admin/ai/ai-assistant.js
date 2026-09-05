@@ -112,7 +112,7 @@
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function appendMessage(role, text, fileInfo) {
+    function appendMessage(role, text, fileInfo, table) {
         const wrapper = document.createElement('div');
         wrapper.className = `ai-msg ai-msg--${role}`;
 
@@ -131,11 +131,67 @@
             bubble.appendChild(link);
         }
 
+        if (table && Array.isArray(table.columns) && Array.isArray(table.rows)) {
+            bubble.appendChild(buildTableElement(table));
+        }
+
         wrapper.appendChild(bubble);
+
         messagesEl.appendChild(wrapper);
         scrollToBottom();
         return wrapper;
     }
+
+    // Builds a scrollable table (sticky header, vertical scroll after a
+    // handful of rows) for query_data responses that include row-level
+    // data, e.g. the full inmate list behind a "how many inmates" answer.
+    function buildTableElement(table) {
+        const outer = document.createElement('div');
+        outer.className = 'ai-table-wrapper';
+
+        if (table.title) {
+            const heading = document.createElement('div');
+            heading.className = 'ai-table-title';
+            heading.textContent = table.title;
+            outer.appendChild(heading);
+        }
+
+        const scrollBox = document.createElement('div');
+        scrollBox.className = 'ai-table-scroll';
+
+        const el = document.createElement('table');
+        el.className = 'ai-table';
+
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        table.columns.forEach((col) => {
+            const th = document.createElement('th');
+            th.textContent = col;
+            headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        el.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        table.rows.forEach((row) => {
+            const tr = document.createElement('tr');
+            table.columns.forEach((col) => {
+                const td = document.createElement('td');
+                const value = row[col];
+                td.textContent = (value === null || value === undefined || value === '') ? '—' : value;
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        el.appendChild(tbody);
+
+        scrollBox.appendChild(el);
+        outer.appendChild(scrollBox);
+        return outer;
+    }
+
+    let typingTimerInterval = null;
+    let typingStartTime = null;
 
     function showTypingIndicator() {
         const wrapper = document.createElement('div');
@@ -146,12 +202,38 @@
         bubble.className = 'ai-msg__bubble ai-typing';
         bubble.innerHTML = '<span></span><span></span><span></span>';
 
+        const timer = document.createElement('span');
+        timer.id = 'aiTypingTimer';
+        timer.className = 'ai-typing-timer';
+        timer.style.marginLeft = '8px';
+        timer.style.fontSize = '0.75em';
+        timer.style.opacity = '0.65';
+        timer.textContent = '0s';
+        bubble.appendChild(timer);
+
         wrapper.appendChild(bubble);
         messagesEl.appendChild(wrapper);
         scrollToBottom();
+
+        typingStartTime = Date.now();
+        updateTypingTimer();
+        typingTimerInterval = window.setInterval(updateTypingTimer, 1000);
+    }
+
+    function updateTypingTimer() {
+        const timer = document.getElementById('aiTypingTimer');
+        if (!timer || !typingStartTime) return;
+        const elapsedSeconds = Math.floor((Date.now() - typingStartTime) / 1000);
+        timer.textContent = `${elapsedSeconds}s`;
     }
 
     function removeTypingIndicator() {
+        if (typingTimerInterval) {
+            window.clearInterval(typingTimerInterval);
+            typingTimerInterval = null;
+        }
+        typingStartTime = null;
+
         const el = document.getElementById('aiTypingIndicator');
         if (el) el.remove();
     }
@@ -185,7 +267,7 @@
                 return;
             }
 
-            appendMessage('assistant', data.reply || "Sorry, I didn't get a valid response.", data.file);
+            appendMessage('assistant', data.reply || "Sorry, I didn't get a valid response.", data.file, data.table);
             pushHistory('assistant', data.reply || '');
         } catch (err) {
             removeTypingIndicator();

@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ asset('css/admin/ai/ai-assistant.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/responsiveness/responsive.css') }}">
     <link rel="stylesheet" href="{{ asset('css/admin/navbar/sidebar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/admin/ai/chat-table-styles.css') }}">
 @endpush
 
 @section('content')
