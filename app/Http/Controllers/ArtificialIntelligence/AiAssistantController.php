@@ -247,6 +247,10 @@ class AiAssistantController extends Controller
         $jsonString = $this->extractFirstJsonObject($trimmed);
 
         if ($jsonString === null) {
+            // TEMP DIAGNOSTIC — remove once the decode-failure cause is confirmed.
+            Log::warning('AI action: extractFirstJsonObject found no balanced object', [
+                'trimmed' => $trimmed,
+            ]);
             return null;
         }
 
@@ -257,11 +261,25 @@ class AiAssistantController extends Controller
         // json_decode() fails silently on the *entire* object for either
         // mistake, so we repair both before decoding rather than losing
         // the whole action over one bad character.
-        $jsonString = $this->repairJsonForDecode($jsonString);
+        $repaired = $this->repairJsonForDecode($jsonString);
 
-        $decoded = json_decode($jsonString, true);
+        $decoded = json_decode($repaired, true);
 
-        if (!is_array($decoded) || !in_array($decoded['action'] ?? null, ['generate_document', 'query_data'], true)) {
+        if (!is_array($decoded)) {
+            // TEMP DIAGNOSTIC — remove once the decode-failure cause is confirmed.
+            Log::warning('AI action: json_decode failed', [
+                'json_error' => json_last_error_msg(),
+                'raw_extracted' => $jsonString,
+                'repaired' => $repaired,
+            ]);
+            return null;
+        }
+
+        if (!in_array($decoded['action'] ?? null, ['generate_document', 'query_data'], true)) {
+            // TEMP DIAGNOSTIC — remove once the decode-failure cause is confirmed.
+            Log::warning('AI action: decoded but action field not recognized', [
+                'decoded' => $decoded,
+            ]);
             return null;
         }
 
